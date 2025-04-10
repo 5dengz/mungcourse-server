@@ -44,6 +44,6 @@ public class Dog {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToMany(mappedBy = "dogs", fetch = FetchType.LAZY)
-    private List<Walk> walks;
+    @OneToMany(mappedBy = "dog", fetch = FetchType.LAZY)
+    private List<WalkDog> walkDogs;
 }

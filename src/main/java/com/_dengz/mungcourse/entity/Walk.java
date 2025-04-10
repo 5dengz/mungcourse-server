@@ -41,11 +41,6 @@ public class Walk {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToMany
-    @JoinTable(
-            name = "walk_dog",
-            joinColumns = @JoinColumn(name = "walk_id"),
-            inverseJoinColumns = @JoinColumn(name = "dog_id")
-    )
-    private List<Dog> dogs;
+    @OneToMany(mappedBy = "walk", fetch = FetchType.LAZY)
+    private List<WalkDog> walkDogs;
 }
