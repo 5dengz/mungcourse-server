@@ -2,12 +2,12 @@ package com._dengz.mungcourse.properties;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Getter
 @RequiredArgsConstructor
-@Component
 @ConfigurationProperties(prefix = "google")
 public class GoogleOAuth2Properties {
     private final String publicKeysUrl;

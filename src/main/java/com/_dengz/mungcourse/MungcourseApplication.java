@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties({JwtProperties.class, GoogleOAuth2Properties.class})
 public class MungcourseApplication {
 
 	public static void main(String[] args) {
