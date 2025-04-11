@@ -1,13 +1,17 @@
 package com._dengz.mungcourse.service;
 
 import com._dengz.mungcourse.dto.UserInfoDto;
+import com._dengz.mungcourse.dto.auth.OAuth2Response;
 import com._dengz.mungcourse.entity.User;
 import com._dengz.mungcourse.exception.GoogleInvalidTokenException;
 import com._dengz.mungcourse.exception.PublicKeyNotFoundException;
+import com._dengz.mungcourse.jwt.TokenProvider;
+import com._dengz.mungcourse.properties.GoogleOAuth2Properties;
 import com._dengz.mungcourse.repository.UserRepository;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -29,15 +33,15 @@ import org.springframework.web.client.RestTemplate;
 public class GoogleOAuth2Service implements OAuth2Service{
 
     private final UserRepository userRepository;
+    private final TokenProvider tokenProvider;
+    private final GoogleOAuth2Properties googleOAuth2Properties;
 
-    @Value("${google.public_keys_url}")
-    private String GOOGLE_PUBLIC_KEYS_URL;
+    private String public_keys_url;
 
-    @Value("${google.client_id}")
-    private String GOOGLE_CLIENT_ID; // 구글에서 받은 클라이언트 ID
+    private String client_id; // 구글에서 받은 클라이언트 ID
 
     @Override
-    public UserInfoDto authenticate(String idToken) {
+    public OAuth2Response authenticate(String idToken) {
         if (!validateIdToken(idToken)) {
             throw new GoogleInvalidTokenException();
         }
@@ -48,7 +52,9 @@ public class GoogleOAuth2Service implements OAuth2Service{
         // 사용자 생성 또는 업데이트
         User user = createOrUpdateUser(userInfo);
 
-        return new UserInfoDto(user.getSub(), user.getEmail(), user.getName(), user.getProvider(), user.getUserImgUrl());
+
+        return new OAuth2Response(tokenProvider.createAccessAndRefreshTokenResponse(user.getSub()),
+                new UserInfoDto(user.getSub(), user.getEmail(), user.getName(), user.getProvider(), user.getUserImgUrl()));
     }
 
     @Override
@@ -71,7 +77,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
 
             // 서명 검증
             JWTVerifier verifier = JWT.require(Algorithm.RSA256(publicKey, null))
-                    .withAudience(GOOGLE_CLIENT_ID) // 클라이언트 ID 매칭
+                    .withAudience(googleOAuth2Properties.getClientId()) // 클라이언트 ID 매칭
                     .build();
 
             // idToken 검증
@@ -89,7 +95,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
     public Map<String, Object> fetchGooglePublicKeys() {
         // Google 공개키 API에서 키 목록 가져오기
         RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.getForObject(GOOGLE_PUBLIC_KEYS_URL, Map.class);  // Map.class로 수정
+        return restTemplate.getForObject(googleOAuth2Properties.getPublicKeysUrl(), Map.class);  // Map.class로 수정
     }
 
     private RSAPublicKey findPublicKey(Map<String, Object> publicKeys, String kid) {
