@@ -30,11 +30,11 @@ public class GoogleOAuth2Service implements OAuth2Service{
 
     private final UserRepository userRepository;
 
-    @Value("${google_public_keys_url}")
-    private final String GOOGLE_PUBLIC_KEYS_URL;
+    @Value("${google.public_keys_url}")
+    private String GOOGLE_PUBLIC_KEYS_URL;
 
-    @Value("${google_client_id}")
-    private final String GOOGLE_CLIENT_ID; // 구글에서 받은 클라이언트 ID
+    @Value("${google.client_id}")
+    private String GOOGLE_CLIENT_ID; // 구글에서 받은 클라이언트 ID
 
     @Override
     public UserInfoDto authenticate(String idToken) {
