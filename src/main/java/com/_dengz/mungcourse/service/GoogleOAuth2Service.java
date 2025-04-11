@@ -4,7 +4,6 @@ import com._dengz.mungcourse.dto.UserInfoDto;
 import com._dengz.mungcourse.entity.User;
 import com._dengz.mungcourse.exception.GoogleInvalidTokenException;
 import com._dengz.mungcourse.exception.PublicKeyNotFoundException;
-import com._dengz.mungcourse.properties.GoogleOAuth2Properties;
 import com._dengz.mungcourse.repository.UserRepository;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import lombok.RequiredArgsConstructor;
@@ -30,10 +29,12 @@ import org.springframework.web.client.RestTemplate;
 public class GoogleOAuth2Service implements OAuth2Service{
 
     private final UserRepository userRepository;
-    private final GoogleOAuth2Properties googleOAuth2Properties;
 
-    private String publicKeysUrl;
-    private String clientId; // 구글에서 받은 클라이언트 ID
+    @Value("${google.public_keys_url}")
+    private String GOOGLE_PUBLIC_KEYS_URL;
+
+    @Value("${google.client_id}")
+    private String GOOGLE_CLIENT_ID; // 구글에서 받은 클라이언트 ID
 
     @Override
     public UserInfoDto authenticate(String idToken) {
@@ -70,7 +71,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
 
             // 서명 검증
             JWTVerifier verifier = JWT.require(Algorithm.RSA256(publicKey, null))
-                    .withAudience(googleOAuth2Properties.getClientId()) // 클라이언트 ID 매칭
+                    .withAudience(GOOGLE_CLIENT_ID) // 클라이언트 ID 매칭
                     .build();
 
             // idToken 검증
@@ -88,7 +89,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
     public Map<String, Object> fetchGooglePublicKeys() {
         // Google 공개키 API에서 키 목록 가져오기
         RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.getForObject(googleOAuth2Properties.getPublicKeysUrl(), Map.class);  // Map.class로 수정
+        return restTemplate.getForObject(GOOGLE_PUBLIC_KEYS_URL, Map.class);  // Map.class로 수정
     }
 
     private RSAPublicKey findPublicKey(Map<String, Object> publicKeys, String kid) {
