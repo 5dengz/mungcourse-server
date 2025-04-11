@@ -30,6 +30,9 @@ public class User {
     @Column(nullable = false)
     private String provider;
 
+    @Column(nullable = true)
+    private String userImgUrl;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Dog> dogs;
 
@@ -39,15 +42,20 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Routine> routines;
 
-    private User(String sub, String email, String name, String provider)
+    private User(String sub, String email, String name, String userImgUrl, String provider)
     {
         this.sub = sub;
         this.email = email;
         this.name = name;
+        this.userImgUrl = userImgUrl;
         this.provider = provider;
     }
 
+    public static User create(String sub, String email, String name, String userImgUrl, String provider) {
+        return new User(sub, email, name, userImgUrl, provider);
+    }
+
     public static User create(String sub, String email, String name, String provider) {
-        return new User(sub, email, name, provider);
+        return new User(sub, email, name, null, provider);
     }
 }
