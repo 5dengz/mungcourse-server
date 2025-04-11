@@ -23,7 +23,7 @@ public class GoogleOAuth2Controller {
     @Operation(summary = "구글 OAuth 로그인 및 회원가입", description = "모바일에서 구글 소셜 로그인으로 회원가입하는 api")
     public DataResponse<OAuth2Response> googleOAuthLoginOrRegister(@RequestBody IdTokenRequest request) {
         OAuth2Response oAuth2Response = googleOAuth2Service.authenticate(request.getIdToken());
-        return DataResponse.ok(oAuth2Response); // 테스트용, 실제로는 OAuthResponse로 담아서 ㄱㄱ
+        return DataResponse.ok(oAuth2Response);
     }
 
 }

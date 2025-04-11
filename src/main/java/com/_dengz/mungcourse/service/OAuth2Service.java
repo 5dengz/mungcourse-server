@@ -15,7 +15,9 @@ public interface OAuth2Service {
     UserInfoDto extractUserInfo(String idToken);
 
     // 사용자 정보 생성 또는 업데이트
-    User createOrUpdateUser(UserInfoDto userInfo);
+    User createUser(UserInfoDto userInfo);
+
+    User updateUser(String sub, UserInfoDto userInfo);
 
     // 로그아웃 처리
     // void logout(Long userId);

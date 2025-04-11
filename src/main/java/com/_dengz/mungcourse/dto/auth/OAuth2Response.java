@@ -8,10 +8,11 @@ import lombok.Getter;
 public class OAuth2Response {
     private AccessTokenAndRefreshTokenResponse tokens;
     private UserInfoDto user;
-//    private boolean isNewUser;
+    private boolean isNewUser;
 
-    public OAuth2Response(AccessTokenAndRefreshTokenResponse tokens, UserInfoDto user) {
+    public OAuth2Response(AccessTokenAndRefreshTokenResponse tokens, UserInfoDto user, boolean isNewUser) {
         this.tokens = tokens;
         this.user = user;
+        this.isNewUser = isNewUser;
     }
 }
