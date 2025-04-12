@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -30,6 +31,9 @@ public class Dog {
     private Float weight;
 
     @Column(nullable = false)
+    private LocalDateTime postedAt;
+
+    @Column(nullable = false)
     private Boolean hasArthritis = false;
 
     @Column(nullable = false)
@@ -47,13 +51,14 @@ public class Dog {
     @OneToMany(mappedBy = "dog", fetch = FetchType.LAZY)
     private List<WalkDog> walkDogs;
 
-    private Dog(String name, String gender, LocalDate birthDate, String breed, Float weight, Boolean hasArthritis,
-                Boolean neutered, String dogImgUrl, Boolean isMain, User user) {
+    private Dog(String name, String gender, LocalDate birthDate, String breed, Float weight, LocalDateTime postedAt,
+                Boolean hasArthritis, Boolean neutered, String dogImgUrl, Boolean isMain, User user) {
         this.name = name;
         this.gender = gender;
         this.birthDate = birthDate;
         this.breed = breed;
         this.weight = weight;
+        this.postedAt = postedAt;
         this.hasArthritis = hasArthritis;
         this.neutered = neutered;
         this.dogImgUrl = dogImgUrl;
@@ -61,8 +66,8 @@ public class Dog {
         this.user = user;
     }
 
-    public static Dog create(String name, String gender, LocalDate birthDate, String breed, Float weight, Boolean hasArthritis,
-                             Boolean neutered, String dogImgUrl, Boolean isMain, User user) {
-        return new Dog(name, gender, birthDate, breed, weight, hasArthritis, neutered, dogImgUrl, isMain, user);
+    public static Dog create(String name, String gender, LocalDate birthDate, String breed, Float weight, LocalDateTime postedAt,
+                             Boolean hasArthritis, Boolean neutered, String dogImgUrl, Boolean isMain, User user) {
+        return new Dog(name, gender, birthDate, breed, weight, postedAt, hasArthritis, neutered, dogImgUrl, isMain, user);
     }
 }

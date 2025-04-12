@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 public class DogRequest {
@@ -23,6 +24,9 @@ public class DogRequest {
     private LocalDate birthDate;
 
     private Float weight;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime postedAt = LocalDateTime.now();
 
     private Boolean hasArthritis;
     private Boolean neutered ;

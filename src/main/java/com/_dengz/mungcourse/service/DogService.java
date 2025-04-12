@@ -22,7 +22,7 @@ public class DogService {
         boolean isFirstDog = !dogRepository.existsByUser(user); // 처음 등록한 강아지면 자동으로 isMain = true로 해줌
 
         Dog dog = Dog.create(dogRequest.getName(), dogRequest.getGender(), dogRequest.getBirthDate(), dogRequest.getBreed(),
-                dogRequest.getWeight(), dogRequest.getHasArthritis(), dogRequest.getNeutered(), dogRequest.getDogImgUrl(), isFirstDog, user);
+                dogRequest.getWeight(), dogRequest.getPostedAt(), dogRequest.getHasArthritis(), dogRequest.getNeutered(), dogRequest.getDogImgUrl(), isFirstDog, user);
 
         return DogResponse.create(dogRepository.save(dog));
 

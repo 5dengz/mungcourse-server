@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 public class DogResponse {
@@ -23,19 +24,23 @@ public class DogResponse {
 
     private final Float weight;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private final LocalDateTime postedAt;
+
     private final Boolean hasArthritis;
     private final Boolean neutered ;
     private final String dogImgUrl;
     private final Boolean isMain;
 
     private DogResponse(String name, String gender, String breed, LocalDate birthDate,
-                        Float weight, Boolean hasArthritis, Boolean neutered, String dogImgUrl, Boolean isMain)
+                        Float weight, LocalDateTime postedAt, Boolean hasArthritis, Boolean neutered, String dogImgUrl, Boolean isMain)
     {
         this.name = name;
         this.gender = gender;
         this.breed = breed;
         this.birthDate = birthDate;
         this.weight = weight;
+        this.postedAt = postedAt;
         this.hasArthritis = hasArthritis;
         this.neutered = neutered;
         this.dogImgUrl = dogImgUrl;
@@ -49,6 +54,7 @@ public class DogResponse {
                 dog.getBreed(),
                 dog.getBirthDate(),
                 dog.getWeight(),
+                dog.getPostedAt(),
                 dog.getHasArthritis(),
                 dog.getNeutered(),
                 dog.getDogImgUrl(),
