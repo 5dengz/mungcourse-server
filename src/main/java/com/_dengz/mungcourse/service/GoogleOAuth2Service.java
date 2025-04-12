@@ -1,13 +1,17 @@
 package com._dengz.mungcourse.service;
 
 import com._dengz.mungcourse.dto.UserInfoDto;
+import com._dengz.mungcourse.dto.auth.OAuth2Response;
 import com._dengz.mungcourse.entity.User;
 import com._dengz.mungcourse.exception.GoogleInvalidTokenException;
 import com._dengz.mungcourse.exception.PublicKeyNotFoundException;
+import com._dengz.mungcourse.jwt.TokenProvider;
+import com._dengz.mungcourse.properties.GoogleOAuth2Properties;
 import com._dengz.mungcourse.repository.UserRepository;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -29,26 +33,33 @@ import org.springframework.web.client.RestTemplate;
 public class GoogleOAuth2Service implements OAuth2Service{
 
     private final UserRepository userRepository;
-
-    @Value("${google.public_keys_url}")
-    private String GOOGLE_PUBLIC_KEYS_URL;
-
-    @Value("${google.client_id}")
-    private String GOOGLE_CLIENT_ID; // 구글에서 받은 클라이언트 ID
+    private final TokenProvider tokenProvider;
+    private final GoogleOAuth2Properties googleOAuth2Properties;
 
     @Override
-    public UserInfoDto authenticate(String idToken) {
+    public OAuth2Response authenticate(String idToken) {
         if (!validateIdToken(idToken)) {
             throw new GoogleInvalidTokenException();
         }
 
         // Google에서 사용자 정보를 추출
         UserInfoDto userInfo = extractUserInfo(idToken);
+        User user;
+        boolean isNewUser = false;
 
-        // 사용자 생성 또는 업데이트
-        User user = createOrUpdateUser(userInfo);
+        // 유저가 원래 없던 케이스 (회원가입 후 로그인)
+        if (!isUserExist(userInfo.getSub())) {
+            user = createUser(userInfo);
+            isNewUser = true;
+        }
+        // 원래 존재하는 유저 (로그인)
+        else {
+            user = updateUser(userInfo.getSub(), userInfo);
+        }
 
-        return new UserInfoDto(user.getSub(), user.getEmail(), user.getName(), user.getProvider(), user.getUserImgUrl());
+
+        return new OAuth2Response(tokenProvider.createAccessAndRefreshTokenResponse(user.getSub()),
+                new UserInfoDto(user.getSub(), user.getEmail(), user.getName(), user.getProvider(), user.getUserImgUrl()), isNewUser);
     }
 
     @Override
@@ -71,7 +82,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
 
             // 서명 검증
             JWTVerifier verifier = JWT.require(Algorithm.RSA256(publicKey, null))
-                    .withAudience(GOOGLE_CLIENT_ID) // 클라이언트 ID 매칭
+                    .withAudience(googleOAuth2Properties.getClientId()) // 클라이언트 ID 매칭
                     .build();
 
             // idToken 검증
@@ -89,7 +100,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
     public Map<String, Object> fetchGooglePublicKeys() {
         // Google 공개키 API에서 키 목록 가져오기
         RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.getForObject(GOOGLE_PUBLIC_KEYS_URL, Map.class);  // Map.class로 수정
+        return restTemplate.getForObject(googleOAuth2Properties.getPublicKeysUrl(), Map.class);  // Map.class로 수정
     }
 
     private RSAPublicKey findPublicKey(Map<String, Object> publicKeys, String kid) {
@@ -144,39 +155,42 @@ public class GoogleOAuth2Service implements OAuth2Service{
         }
     }
 
-    @Override
-    public User createOrUpdateUser(UserInfoDto userInfo) {
-        // 1. userInfo에서 sub를 사용해 기존 사용자 조회
-        User existingUser = userRepository.findBySub(userInfo.getSub())
-                .orElse(null); // 해당 사용자가 없으면 null 반환
+    // 이미 존재하는 유저인지 확인용
+    public boolean isUserExist(String sub) {
+        return userRepository.findBySub(sub).isPresent();
+    }
 
-        if (existingUser != null) {
-            // 2. 기존 사용자 정보 업데이트
-            existingUser.setEmail(userInfo.getEmail());  // 이메일 업데이트
-            existingUser.setName(userInfo.getName());    // 이름 업데이트
-            existingUser.setUserImgUrl(userInfo.getPicture());  // 프로필 사진 업데이트
-            existingUser.setProvider(userInfo.getProvider());  // 인증 제공자 업데이트
 
-            // 3. 변경된 사용자 정보 저장 (변경 사항이 있을 때만)
-            if (!existingUser.getEmail().equals(userInfo.getEmail()) ||
-                    !existingUser.getName().equals(userInfo.getName()) ||
-                    !existingUser.getUserImgUrl().equals(userInfo.getPicture())) {
-                return userRepository.save(existingUser);
-            }
-            else
-                return existingUser; // 바뀐거 없으면 그냥 그대로 return
-        } else {
-            // 4. 기존 사용자가 없으면 새 사용자 생성
-            User newUser = User.create(
-                    userInfo.getSub(),
-                    userInfo.getEmail(),
-                    userInfo.getName(),
-                    userInfo.getPicture(),
-                    userInfo.getProvider()
-            );
+    public User createUser(UserInfoDto userInfo) {
+        User newUser = User.create(
+                userInfo.getSub(),
+                userInfo.getEmail(),
+                userInfo.getName(),
+                userInfo.getPicture(),
+                userInfo.getProvider()
+        );
 
-            // 5. 새 사용자 저장
-            return userRepository.save(newUser);
+        return userRepository.save(newUser);
+    }
+
+    public User updateUser(String sub, UserInfoDto userInfo) {
+        User existingUser = userRepository.findBySub(sub).orElse(null);
+
+        existingUser.setEmail(userInfo.getEmail());  // 이메일 업데이트
+        existingUser.setName(userInfo.getName());    // 이름 업데이트
+        existingUser.setUserImgUrl(userInfo.getPicture());  // 프로필 사진 업데이트
+        existingUser.setProvider(userInfo.getProvider());  // 인증 제공자 업데이트
+
+        // 3. 변경된 사용자 정보 저장 (변경 사항이 있을 때만)
+        if (!existingUser.getEmail().equals(userInfo.getEmail()) ||
+                !existingUser.getName().equals(userInfo.getName()) ||
+                !existingUser.getUserImgUrl().equals(userInfo.getPicture())) {
+            return userRepository.save(existingUser);
         }
+        else
+            return existingUser; // 바뀐거 없으면 그냥 그대로 return
     }
 }
+
+// 1. createUser, updateUser로 분리한다
+// 2. createUser 해야하는 상황이면 isNewUser = true, updateUser 해야하는 상황이면 isNewUser = false

@@ -2,18 +2,20 @@ package com._dengz.mungcourse.exception;
 
 import com._dengz.mungcourse.exception.common.CustomBaseException;
 
+import static com._dengz.mungcourse.exception.GlobalErrorCode.GOOGLE_PUBLIC_KEY_NOT_FOUND;
+
 public class PublicKeyNotFoundException extends CustomBaseException {
     public PublicKeyNotFoundException() {
-      super("kid가 일치하는 구글의 공개키를 찾을 수 없습니다.");
+      super(GOOGLE_PUBLIC_KEY_NOT_FOUND.getMessage());
     }
 
     @Override
     public int getStatusCode() {
-      return 404;
+      return GOOGLE_PUBLIC_KEY_NOT_FOUND.getStatus();
     }
 
     @Override
     public String getErrorCode() {
-      return "GOOGLE_PUBLIC_KEY_NOT_FOUND";
+      return GOOGLE_PUBLIC_KEY_NOT_FOUND.name();
     }
 }

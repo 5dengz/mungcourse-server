@@ -34,6 +34,10 @@ public class DataResponse<T> extends BaseResponse {
         return of(200, "요청에 성공했습니다.", null);
     }
 
+    public static <T> DataResponse<T> ok(String message, T data) { return of(200, message, data);}
+
+    public static <T> DataResponse<T> ok(String message) { return of(200, message, null);}
+
     public static <T> DataResponse<T> noContent() {
         return of(204, "콘텐츠가 없습니다.", null);
     }
