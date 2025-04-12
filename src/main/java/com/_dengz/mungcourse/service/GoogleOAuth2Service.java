@@ -36,10 +36,6 @@ public class GoogleOAuth2Service implements OAuth2Service{
     private final TokenProvider tokenProvider;
     private final GoogleOAuth2Properties googleOAuth2Properties;
 
-    private String public_keys_url;
-
-    private String client_id; // 구글에서 받은 클라이언트 ID
-
     @Override
     public OAuth2Response authenticate(String idToken) {
         if (!validateIdToken(idToken)) {

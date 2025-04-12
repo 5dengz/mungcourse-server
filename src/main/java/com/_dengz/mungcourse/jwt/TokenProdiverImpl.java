@@ -39,7 +39,7 @@ public class TokenProdiverImpl implements TokenProvider{
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .setIssuer(jwtProperties.getIssuer())
-                .claim(SUB, sub)
+                .claim(USER_SUB, sub)
                 .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecret().getBytes())
                 .compact();
     }
@@ -57,6 +57,7 @@ public class TokenProdiverImpl implements TokenProvider{
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .setIssuer(jwtProperties.getIssuer())
+                .claim(USER_SUB, sub)
                 .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecret().getBytes())
                 .compact();
 
@@ -93,9 +94,9 @@ public class TokenProdiverImpl implements TokenProvider{
     }
 
     @Override
-    public Optional<String> extractSub(String accessToken) {
+    public Optional<String> extractSub(String token) {
         try {
-            return Optional.ofNullable(getClaims(accessToken).get(SUB, String.class));
+            return Optional.ofNullable(getClaims(token).get(USER_SUB, String.class));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -108,22 +109,27 @@ public class TokenProdiverImpl implements TokenProvider{
     }
 
     @Override
-    public boolean isValidToken(String token) {
+    public boolean isValidAccessToken(String token) {
         try {
-            boolean tokenNotExpired = isNotExpiredToken(token);
-            boolean connected;
-            if (isAccessToken(token)) {
-                String sub = extractSub(token).get();
-                connected = userRepository.findBySub(sub)
-                        .map(User::getId)
-                        .flatMap(refreshTokenRepository::findById)
-                        .isPresent();
-            } else {
-                connected = refreshTokenRepository.findByToken(token)
-                        .isPresent();
-            }
-            return tokenNotExpired && connected;
+            if (!isAccessToken(token)) return false;
 
+            String sub = extractSub(token).orElseThrow();
+
+            return userRepository.findBySub(sub)
+                    .map(User::getId)
+                    .flatMap(refreshTokenRepository::findById)
+                    .isPresent(); // RefreshToken이 존재해야 AccessToken도 유효
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isValidRefreshToken(String token) {
+        try {
+            if (!isRefreshToken(token)) return false;
+
+            return refreshTokenRepository.findByToken(token).isPresent();
         } catch (Exception e) {
             return false;
         }
@@ -139,6 +145,11 @@ public class TokenProdiverImpl implements TokenProvider{
     private boolean isAccessToken(String token) {
         Claims claims = getClaims(token);
         return claims.getSubject().equals(ACCESS_TOKEN_SUBJECT);
+    }
+
+    private boolean isRefreshToken(String token) {
+        Claims claims = getClaims(token);
+        return claims.getSubject().equals(REFRESH_TOKEN_SUBJECT);
     }
 
     private User getUserBySub(String sub) {

@@ -22,5 +22,7 @@ public interface TokenProvider {
 
     boolean isNotExpiredToken(String token);
 
-    boolean isValidToken(String toekn);
+    boolean isValidAccessToken(String token);
+
+    boolean isValidRefreshToken(String token);
 }
