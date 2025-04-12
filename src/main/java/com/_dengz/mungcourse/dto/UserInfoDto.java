@@ -10,8 +10,6 @@ public class UserInfoDto {
     private String email;
     private String name;
     private String provider;
-
-    @Column(nullable = true)
     private String userImgUrl;
 
     public UserInfoDto(String sub, String email, String name, String provider, String userImgUrl) {

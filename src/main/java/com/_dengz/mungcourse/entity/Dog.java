@@ -17,16 +17,14 @@ public class Dog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String dogImgUrl;
-
     @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
     private String gender;
 
+    private LocalDate birthDate;
 
-    private LocalDate birthday;
     private String breed;
 
     private Float weight;
@@ -37,6 +35,8 @@ public class Dog {
     @Column(nullable = false)
     private Boolean neutered = false;
 
+    private String dogImgUrl;
+
     @Column(nullable = false)
     private Boolean isMain = false;
 
@@ -46,4 +46,23 @@ public class Dog {
 
     @OneToMany(mappedBy = "dog", fetch = FetchType.LAZY)
     private List<WalkDog> walkDogs;
+
+    private Dog(String name, String gender, LocalDate birthDate, String breed, Float weight, Boolean hasArthritis,
+                Boolean neutered, String dogImgUrl, Boolean isMain, User user) {
+        this.name = name;
+        this.gender = gender;
+        this.birthDate = birthDate;
+        this.breed = breed;
+        this.weight = weight;
+        this.hasArthritis = hasArthritis;
+        this.neutered = neutered;
+        this.dogImgUrl = dogImgUrl;
+        this.isMain = isMain;
+        this.user = user;
+    }
+
+    public static Dog create(String name, String gender, LocalDate birthDate, String breed, Float weight, Boolean hasArthritis,
+                             Boolean neutered, String dogImgUrl, Boolean isMain, User user) {
+        return new Dog(name, gender, birthDate, breed, weight, hasArthritis, neutered, dogImgUrl, isMain, user);
+    }
 }

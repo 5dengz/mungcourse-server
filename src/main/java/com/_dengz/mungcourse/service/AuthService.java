@@ -43,17 +43,18 @@ public class AuthService {
                 });
     }
 
-    public UserInfoDto getUserInfo(HttpServletRequest request) {
+    public User getCurrentUser(HttpServletRequest request) {
+        String accessToken = tokenProvider.extractAccessToken(request)
+                .orElseThrow(AccessTokenNotFoundException::new);
 
-        String accessToken = tokenProvider.extractAccessToken(request).
-                orElseThrow(AccessTokenNotFoundException::new);
+        String sub = tokenProvider.extractSub(accessToken)
+                .orElseThrow(AccessTokenInvalidException::new);
 
-        String sub = tokenProvider.extractSub(accessToken).
-                orElseThrow(AccessTokenInvalidException::new);
-
-        User user = userRepository.findBySub(sub)
+        return userRepository.findBySub(sub)
                 .orElseThrow(UserNotFoundException::new);
+    }
 
-        return UserInfoDto.create(user); // DTO 변환
+    public UserInfoDto getUserInfo(HttpServletRequest request) {
+        return UserInfoDto.create(getCurrentUser(request));
     }
 }
