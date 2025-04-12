@@ -20,6 +20,8 @@ public interface TokenProvider {
 
     Optional<String> extractSub(String accessToken);
 
+    Optional<String> extractSub(HttpServletRequest request);
+
     boolean isNotExpiredToken(String token);
 
     boolean isValidAccessToken(String token);

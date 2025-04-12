@@ -1,5 +1,6 @@
 package com._dengz.mungcourse.service;
 
+import com._dengz.mungcourse.dto.dog.DogListResponse;
 import com._dengz.mungcourse.dto.dog.DogRequest;
 import com._dengz.mungcourse.dto.dog.DogResponse;
 import com._dengz.mungcourse.dto.dog.MainDogResponse;
@@ -13,12 +14,24 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class DogService {
     private final TokenProvider tokenProvider;
     private final DogRepository dogRepository;
     private final AuthService authService;
+
+    public List<DogListResponse> searchAllDogs(User user) {
+
+        List<Dog> dogs = dogRepository.findAllByUser(user);
+
+        return dogs.stream()
+                .map(DogListResponse::create)
+                .collect(Collectors.toList());
+    }
 
     public DogResponse makeDog(User user, DogRequest dogRequest) {
 

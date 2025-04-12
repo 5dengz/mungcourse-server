@@ -103,6 +103,12 @@ public class TokenProdiverImpl implements TokenProvider{
     }
 
     @Override
+    public Optional<String> extractSub(HttpServletRequest request) {
+        return extractAccessToken(request).flatMap(this::extractSub);
+
+    }
+
+    @Override
     public boolean isNotExpiredToken(String token) {
         Date expiration = getClaims(token).getExpiration();
         return expiration.after(new Date());

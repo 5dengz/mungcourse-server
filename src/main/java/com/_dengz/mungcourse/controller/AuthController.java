@@ -4,7 +4,7 @@ import com._dengz.mungcourse.dto.UserInfoDto;
 import com._dengz.mungcourse.dto.auth.AccessTokenAndRefreshTokenResponse;
 import com._dengz.mungcourse.dto.common.BaseResponse;
 import com._dengz.mungcourse.dto.common.DataResponse;
-import com._dengz.mungcourse.exception.AccessTokenNotFoundException;
+import com._dengz.mungcourse.exception.UserNotFoundException;
 import com._dengz.mungcourse.exception.RefreshTokenInvalidException;
 import com._dengz.mungcourse.exception.RefreshTokenNotFoundException;
 import com._dengz.mungcourse.jwt.TokenProvider;
@@ -49,10 +49,10 @@ public class AuthController {
     @GetMapping("/me")
     @Operation(summary = "유저 정보 가져오기 기능", description = "로그인 된 유저 정보 가져오기")
     public DataResponse<UserInfoDto> searchUser(HttpServletRequest request) {
-        String accessToken = tokenProvider.extractAccessToken(request)
-                .orElseThrow(AccessTokenNotFoundException::new);
+        String sub = tokenProvider.extractSub(request)
+                .orElseThrow(UserNotFoundException::new);
 
-        return DataResponse.ok(authService.getUserInfo(accessToken));
+        return DataResponse.ok(authService.getUserInfo(sub));
     }
 
 }
