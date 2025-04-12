@@ -29,9 +29,12 @@ public class AuthController {
     private final TokenProvider tokenProvider;
 
     @PostMapping("/refresh")
-    @Operation(summary = "Access Token, Refresh Token 재발급", description = "Access Token이 만료되면 토큰들을 재발급하여 Refresh Token Rotation 구현")
-    public DataResponse<AccessTokenAndRefreshTokenResponse> tokensRefresh(@RequestBody RefreshTokenRequest request) {
-        return DataResponse.ok(authService.rotateTokens(request.getRefreshToken()));
+    @Operation(summary = "Access Token, Refresh Token 재발급", description = "헤더에 담긴 Refresh Token을 바탕으로 Access/Refresh Token을 새로 발급합니다.")
+    public DataResponse<AccessTokenAndRefreshTokenResponse> tokensRefresh(HttpServletRequest request) {
+        String refreshToken = tokenProvider.extractRefreshToken(request)
+                .orElseThrow(() -> new RefreshTokenInvalidException());
+
+        return DataResponse.ok(authService.rotateTokens(refreshToken));
     }
 
     @PostMapping("/logout")
@@ -40,5 +43,5 @@ public class AuthController {
         authService.logout(request);
         return DataResponse.ok("로그아웃 되었습니다.");
     }
-    
+
 }
