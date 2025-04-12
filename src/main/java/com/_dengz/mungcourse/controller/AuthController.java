@@ -8,6 +8,7 @@ import com._dengz.mungcourse.dto.common.DataResponse;
 import com._dengz.mungcourse.exception.RefreshTokenInvalidException;
 import com._dengz.mungcourse.exception.UserNotFoundException;
 import com._dengz.mungcourse.jwt.TokenProvider;
+import com._dengz.mungcourse.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,21 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final TokenProvider tokenProvider;
+    private final AuthService authService;
 
     @PostMapping("/refresh")
     @Operation(summary = "Access Token, Refresh Token 재발급", description = "Access Token이 만료되면 토큰들을 재발급하여 Refresh Token Rotation 구현")
     public DataResponse<AccessTokenAndRefreshTokenResponse> tokensRefresh(@RequestBody RefreshTokenRequest request) {
-        String token = request.getRefreshToken();
-
-        if (!tokenProvider.isValidRefreshToken(token)) {
-            throw new RefreshTokenInvalidException();
-        }
-
-        String sub = tokenProvider.extractSub(token)
-                .orElseThrow(UserNotFoundException::new);
-
-        tokenProvider.disableRefreshToken(sub);
-        return DataResponse.ok(tokenProvider.createAccessAndRefreshTokenResponse(sub));
+        return DataResponse.ok(authService.rotateTokens(request.getRefreshToken()));
     }
 }
