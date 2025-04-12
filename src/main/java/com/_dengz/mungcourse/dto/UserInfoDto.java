@@ -12,13 +12,23 @@ public class UserInfoDto {
     private String provider;
 
     @Column(nullable = true)
-    private String picture;
+    private String userImgUrl;
 
-    public UserInfoDto(String sub, String email, String name, String provider, String picture) {
+    public UserInfoDto(String sub, String email, String name, String provider, String userImgUrl) {
         this.sub = sub;
         this.email = email;
         this.name = name;
         this.provider = provider;
-        this.picture = picture;
+        this.userImgUrl = userImgUrl;
+    }
+
+    public static UserInfoDto create(User user) {
+        return new UserInfoDto(
+                user.getSub(),
+                user.getEmail(),
+                user.getName(),
+                user.getProvider(),
+                user.getUserImgUrl()
+        );
     }
 }

@@ -59,7 +59,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
 
 
         return new OAuth2Response(tokenProvider.createAccessAndRefreshTokenResponse(user.getSub()),
-                new UserInfoDto(user.getSub(), user.getEmail(), user.getName(), user.getProvider(), user.getUserImgUrl()), isNewUser);
+                UserInfoDto.create(user), isNewUser);
     }
 
     @Override
@@ -166,7 +166,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
                 userInfo.getSub(),
                 userInfo.getEmail(),
                 userInfo.getName(),
-                userInfo.getPicture(),
+                userInfo.getUserImgUrl(),
                 userInfo.getProvider()
         );
 
@@ -178,13 +178,13 @@ public class GoogleOAuth2Service implements OAuth2Service{
 
         existingUser.setEmail(userInfo.getEmail());  // 이메일 업데이트
         existingUser.setName(userInfo.getName());    // 이름 업데이트
-        existingUser.setUserImgUrl(userInfo.getPicture());  // 프로필 사진 업데이트
+        existingUser.setUserImgUrl(userInfo.getUserImgUrl());  // 프로필 사진 업데이트
         existingUser.setProvider(userInfo.getProvider());  // 인증 제공자 업데이트
 
         // 3. 변경된 사용자 정보 저장 (변경 사항이 있을 때만)
         if (!existingUser.getEmail().equals(userInfo.getEmail()) ||
                 !existingUser.getName().equals(userInfo.getName()) ||
-                !existingUser.getUserImgUrl().equals(userInfo.getPicture())) {
+                !existingUser.getUserImgUrl().equals(userInfo.getUserImgUrl())) {
             return userRepository.save(existingUser);
         }
         else

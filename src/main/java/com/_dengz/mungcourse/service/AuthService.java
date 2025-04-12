@@ -1,20 +1,26 @@
 package com._dengz.mungcourse.service;
 
+import com._dengz.mungcourse.entity.User;
+import com._dengz.mungcourse.dto.UserInfoDto;
 import com._dengz.mungcourse.dto.auth.AccessTokenAndRefreshTokenResponse;
-import com._dengz.mungcourse.exception.RefreshTokenInvalidException;
+import com._dengz.mungcourse.exception.*;
 import com._dengz.mungcourse.jwt.TokenProvider;
+import com._dengz.mungcourse.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com._dengz.mungcourse.exception.UserNotFoundException;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final TokenProvider tokenProvider;
+    private final UserRepository userRepository;
 
-    public AccessTokenAndRefreshTokenResponse rotateTokens(String refreshToken) {
+    public AccessTokenAndRefreshTokenResponse rotateTokens(HttpServletRequest request) {
+        String refreshToken = tokenProvider.extractRefreshToken(request)
+                .orElseThrow(RefreshTokenNotFoundException::new);
+
         if (!tokenProvider.isValidRefreshToken(refreshToken)) {
             throw new RefreshTokenInvalidException();
         }
@@ -35,5 +41,19 @@ public class AuthService {
                                 tokenProvider.disableRefreshToken(sub);
                             });
                 });
+    }
+
+    public UserInfoDto getUserInfo(HttpServletRequest request) {
+
+        String accessToken = tokenProvider.extractAccessToken(request).
+                orElseThrow(AccessTokenNotFoundException::new);
+
+        String sub = tokenProvider.extractSub(accessToken).
+                orElseThrow(AccessTokenInvalidException::new);
+
+        User user = userRepository.findBySub(sub)
+                .orElseThrow(UserNotFoundException::new);
+
+        return UserInfoDto.create(user); // DTO 변환
     }
 }
