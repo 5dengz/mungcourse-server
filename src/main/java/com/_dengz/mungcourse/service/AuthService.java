@@ -3,6 +3,7 @@ package com._dengz.mungcourse.service;
 import com._dengz.mungcourse.dto.auth.AccessTokenAndRefreshTokenResponse;
 import com._dengz.mungcourse.exception.RefreshTokenInvalidException;
 import com._dengz.mungcourse.jwt.TokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com._dengz.mungcourse.exception.UserNotFoundException;
@@ -24,5 +25,15 @@ public class AuthService {
         tokenProvider.disableRefreshToken(sub);
 
         return tokenProvider.createAccessAndRefreshTokenResponse(sub);
+    }
+
+    public void logout(HttpServletRequest request) {
+        tokenProvider.extractRefreshToken(request)
+                .ifPresent(token -> {
+                    tokenProvider.extractSub(token)
+                            .ifPresent(sub -> {
+                                tokenProvider.disableRefreshToken(sub);
+                            });
+                });
     }
 }
