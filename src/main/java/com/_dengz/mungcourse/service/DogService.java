@@ -4,6 +4,8 @@ import com._dengz.mungcourse.dto.dog.DogRequest;
 import com._dengz.mungcourse.dto.dog.DogResponse;
 import com._dengz.mungcourse.entity.Dog;
 import com._dengz.mungcourse.entity.User;
+import com._dengz.mungcourse.exception.AccessTokenNotFoundException;
+import com._dengz.mungcourse.jwt.TokenProvider;
 import com._dengz.mungcourse.repository.DogRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +14,13 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DogService {
+    private final TokenProvider tokenProvider;
     private final DogRepository dogRepository;
     private final AuthService authService;
 
-    public DogResponse makeDog(HttpServletRequest request, DogRequest dogRequest) {
+    public DogResponse makeDog(String accessToken, DogRequest dogRequest) {
 
-        User user = authService.getCurrentUser(request);
+        User user = authService.getCurrentUser(accessToken);
 
         boolean isFirstDog = !dogRepository.existsByUser(user); // 처음 등록한 강아지면 자동으로 isMain = true로 해줌
 

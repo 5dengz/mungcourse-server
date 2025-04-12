@@ -17,9 +17,7 @@ public class AuthService {
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
 
-    public AccessTokenAndRefreshTokenResponse rotateTokens(HttpServletRequest request) {
-        String refreshToken = tokenProvider.extractRefreshToken(request)
-                .orElseThrow(RefreshTokenNotFoundException::new);
+    public AccessTokenAndRefreshTokenResponse rotateTokens(String refreshToken) {
 
         if (!tokenProvider.isValidRefreshToken(refreshToken)) {
             throw new RefreshTokenInvalidException();
@@ -33,20 +31,8 @@ public class AuthService {
         return tokenProvider.createAccessAndRefreshTokenResponse(sub);
     }
 
-    public void logout(HttpServletRequest request) {
-        tokenProvider.extractRefreshToken(request)
-                .ifPresent(token -> {
-                    tokenProvider.extractSub(token)
-                            .ifPresent(sub -> {
-                                tokenProvider.disableRefreshToken(sub);
-                            });
-                });
-    }
 
-    public User getCurrentUser(HttpServletRequest request) {
-        String accessToken = tokenProvider.extractAccessToken(request)
-                .orElseThrow(AccessTokenNotFoundException::new);
-
+    public User getCurrentUser(String accessToken) {
         String sub = tokenProvider.extractSub(accessToken)
                 .orElseThrow(AccessTokenInvalidException::new);
 
@@ -54,7 +40,7 @@ public class AuthService {
                 .orElseThrow(UserNotFoundException::new);
     }
 
-    public UserInfoDto getUserInfo(HttpServletRequest request) {
-        return UserInfoDto.create(getCurrentUser(request));
+    public UserInfoDto getUserInfo(String accessToken) {
+        return UserInfoDto.create(getCurrentUser(accessToken));
     }
 }
