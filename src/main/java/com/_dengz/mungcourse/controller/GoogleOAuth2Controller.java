@@ -1,6 +1,5 @@
 package com._dengz.mungcourse.controller;
 
-import com._dengz.mungcourse.dto.UserInfoDto;
 import com._dengz.mungcourse.dto.auth.IdTokenRequest;
 import com._dengz.mungcourse.dto.auth.OAuth2Response;
 import com._dengz.mungcourse.dto.common.DataResponse;
