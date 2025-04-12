@@ -2,18 +2,20 @@ package com._dengz.mungcourse.exception;
 
 import com._dengz.mungcourse.exception.common.CustomBaseException;
 
+import static com._dengz.mungcourse.exception.GlobalErrorCode.INVALID_GOOGLE_ID_TOKEN;
+
 public class GoogleInvalidTokenException extends CustomBaseException {
     public GoogleInvalidTokenException() {
-        super("유효하지 않은 구글 토큰입니다.");
+        super(INVALID_GOOGLE_ID_TOKEN.getMessage());
     }
 
     @Override
     public int getStatusCode() {
-        return 401;
+        return INVALID_GOOGLE_ID_TOKEN.getStatus();
     }
 
     @Override
     public String getErrorCode() {
-        return "INVALID_GOOGLE_ID_TOKEN";
+        return INVALID_GOOGLE_ID_TOKEN.name();
     }
 }
