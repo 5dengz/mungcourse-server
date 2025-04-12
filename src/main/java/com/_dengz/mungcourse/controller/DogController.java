@@ -36,14 +36,20 @@ public class DogController {
 
     @PostMapping()
     @Operation(summary = "강아지 정보 등록하기", description = "유저의 강아지를 등록합니다, 첫 등록이면 메인강아지로 등록합니다.")
-    public DataResponse<DogResponse> addDog(HttpServletRequest request, @RequestBody @Valid DogRequest dogRequest) {
+    public DataResponse<DogResponse> addDog(@RequestBody @Valid DogRequest dogRequest, HttpServletRequest request) {
         String sub = tokenProvider.extractSub(request).orElseThrow(UserNotFoundException::new);
-        return DataResponse.ok(dogService.makeDog(authService.getCurrentUser(sub), dogRequest));
+        return DataResponse.ok(dogService.makeDog(dogRequest, authService.getCurrentUser(sub)));
     }
 
     @GetMapping("/main")
     public DataResponse<MainDogResponse> findDogByIsMain(HttpServletRequest request) {
         String sub = tokenProvider.extractSub(request).orElseThrow(UserNotFoundException::new);
         return DataResponse.ok(dogService.searchMainDog(authService.getCurrentUser(sub)));
+    }
+
+    @GetMapping("/{dogId}")
+    public DataResponse<DogResponse> findDogDetail(@PathVariable("dogId") Long id, HttpServletRequest request) {
+        String sub = tokenProvider.extractSub(request).orElseThrow(UserNotFoundException::new);
+        return DataResponse.ok(dogService.searchDogDetail(id, authService.getCurrentUser(sub)));
     }
 }
