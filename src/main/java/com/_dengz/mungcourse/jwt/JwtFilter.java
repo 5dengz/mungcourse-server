@@ -4,7 +4,6 @@ import com._dengz.mungcourse.dto.common.ErrorResponse;
 import com._dengz.mungcourse.entity.User;
 import com._dengz.mungcourse.exception.GlobalErrorCode;
 import com._dengz.mungcourse.exception.RefreshTokenNotFoundException;
-import com._dengz.mungcourse.exception.UserNotFoundException;
 import com._dengz.mungcourse.properties.SecurityProperties;
 import com._dengz.mungcourse.repository.RefreshTokenRepository;
 import com._dengz.mungcourse.repository.UserRepository;
@@ -49,17 +48,20 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String accessToken = tokenProvider.extractAccessToken(request).orElse(null);
 
+        // Access Token이 아예 없는 상황
         if (accessToken == null) {
             sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_NOT_FOUND);
             return;
         }
 
+        // Access Token이 만료된 상황
         if (!tokenProvider.isNotExpiredToken(accessToken)) {
             sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_EXPIRED);
             return;
         }
 
-        if (!tokenProvider.isValidToken(accessToken)) {
+        // Access Token이 유효하지 않은 상황
+        if (!tokenProvider.isValidAccessToken(accessToken)) {
             sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_INVALID); // 위조되었거나 DB에 연결되지 않은 경우
             return;
         }
