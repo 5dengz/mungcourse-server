@@ -61,10 +61,10 @@ public class JwtFilter extends OncePerRequestFilter {
         if (accessToken == null) {
             sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_NOT_FOUND);
             return;
-        } else if (!tokenProvider.isValidAccessToken(accessToken)) {
+        } else if (!tokenProvider.isValidAccessToken(accessToken)) { // Acess Token이 있는데 유효하지 않은 상황
             sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_INVALID);
             return;
-        } else if (!tokenProvider.isNotExpiredToken(accessToken)) {
+        } else if (!tokenProvider.isNotExpiredToken(accessToken)) { // Access Token이 있고 값도 유효한데 만료된 상황
             sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_EXPIRED);
             return;
         }

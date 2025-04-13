@@ -18,8 +18,15 @@ public class AuthService {
 
     public AccessTokenAndRefreshTokenResponse rotateTokens(String refreshToken) {
 
-        if (!tokenProvider.isValidRefreshToken(refreshToken)) {
+        if (refreshToken == null)
+            throw new RefreshTokenNotFoundException();
+
+        else if (!tokenProvider.isValidRefreshToken(refreshToken)) {
             throw new RefreshTokenInvalidException();
+        }
+
+        else if (!tokenProvider.isNotExpiredToken(refreshToken)) {
+            throw new RefeshTokenExpiredException();
         }
 
         String sub = tokenProvider.extractSub(refreshToken)

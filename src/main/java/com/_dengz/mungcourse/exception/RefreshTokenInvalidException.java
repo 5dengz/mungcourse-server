@@ -2,18 +2,20 @@ package com._dengz.mungcourse.exception;
 
 import com._dengz.mungcourse.exception.common.CustomBaseException;
 
+import static com._dengz.mungcourse.exception.GlobalErrorCode.*;
+
 public class RefreshTokenInvalidException extends CustomBaseException {
     public RefreshTokenInvalidException() {
-        super(GlobalErrorCode.REFRESH_TOKEN_INVALID.getMessage());
+        super(REFRESH_TOKEN_INVALID.getMessage());
     }
 
     @Override
     public int getStatusCode() {
-      return GlobalErrorCode.REFRESH_TOKEN_INVALID.getStatus();
+      return REFRESH_TOKEN_INVALID.getStatus();
     }
 
   @Override
   public String getErrorCode() {
-    return GlobalErrorCode.REFRESH_TOKEN_INVALID.name();
+    return REFRESH_TOKEN_INVALID.name();
   }
 }

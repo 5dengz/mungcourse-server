@@ -42,7 +42,7 @@ public class AuthController {
     @Operation(summary = "Access Token, Refresh Token 재발급 기능", description = "헤더에 담긴 Refresh Token을 바탕으로 Access/Refresh Token을 새로 발급합니다.")
     public DataResponse<AccessTokenAndRefreshTokenResponse> tokensRefresh(HttpServletRequest request) {
         String refreshToken = tokenProvider.extractRefreshToken(request)
-                .orElseThrow(RefreshTokenNotFoundException::new);
+                .orElseThrow(null);
 
         return DataResponse.ok(authService.rotateTokens(refreshToken));
     }
