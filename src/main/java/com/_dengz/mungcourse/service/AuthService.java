@@ -32,12 +32,7 @@ public class AuthService {
     }
 
 
-    public User getCurrentUser(String sub) {
-        return userRepository.findBySub(sub)
-                .orElseThrow(UserNotFoundException::new);
-    }
-
-    public UserInfoDto getUserInfo(String sub) {
-        return UserInfoDto.create(getCurrentUser(sub));
+    public UserInfoDto getUserInfo(User user) {
+        return UserInfoDto.create(user);
     }
 }

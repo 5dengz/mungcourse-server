@@ -10,6 +10,7 @@ import com._dengz.mungcourse.exception.UserNotFoundException;
 import com._dengz.mungcourse.exception.RefreshTokenInvalidException;
 import com._dengz.mungcourse.exception.RefreshTokenNotFoundException;
 import com._dengz.mungcourse.jwt.TokenProvider;
+import com._dengz.mungcourse.jwt.UserPrincipal;
 import com._dengz.mungcourse.service.AuthService;
 import com._dengz.mungcourse.service.GoogleOAuth2Service;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Auth", description = "로그인, 인증 관련 API")
@@ -49,8 +51,8 @@ public class AuthController {
     @Operation(summary = "로그아웃 기능", description = "클라이언트 헤더에 리프레시 토큰 있으면 DB에서 삭제 후 로그아웃, 없어도 그냥 로그아웃")
     public BaseResponse logout(HttpServletRequest request) {
         tokenProvider.extractRefreshToken(request)
-                .ifPresent(token -> {
-                    tokenProvider.extractSub(token)
+                .ifPresent(refreshToken -> {
+                    tokenProvider.extractSub(refreshToken)
                             .ifPresent(sub -> {
                                 tokenProvider.disableRefreshToken(sub);
                             });
@@ -60,11 +62,8 @@ public class AuthController {
 
     @GetMapping("/me")
     @Operation(summary = "유저 정보 가져오기 기능", description = "로그인 된 유저 정보 가져오기")
-    public DataResponse<UserInfoDto> searchUser(HttpServletRequest request) {
-        String sub = tokenProvider.extractSub(request)
-                .orElseThrow(UserNotFoundException::new);
-
-        return DataResponse.ok(authService.getUserInfo(sub));
+    public DataResponse<UserInfoDto> searchUser(@AuthenticationPrincipal UserPrincipal principal) {
+        return DataResponse.ok(authService.getUserInfo(principal.getUser()));
     }
 
 }
