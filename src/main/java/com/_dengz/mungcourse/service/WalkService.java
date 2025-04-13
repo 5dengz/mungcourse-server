@@ -2,24 +2,29 @@ package com._dengz.mungcourse.service;
 
 import com._dengz.mungcourse.dto.walk.WalkRequest;
 import com._dengz.mungcourse.dto.walk.WalkResponse;
+import com._dengz.mungcourse.dto.walk.WalkSimpleResponse;
 import com._dengz.mungcourse.entity.Dog;
 import com._dengz.mungcourse.entity.User;
 import com._dengz.mungcourse.entity.Walk;
 import com._dengz.mungcourse.entity.WalkDog;
 import com._dengz.mungcourse.exception.GpsSerializationFailedException;
+import com._dengz.mungcourse.exception.GpsDeserializationFailedException;
 import com._dengz.mungcourse.repository.DogRepository;
 import com._dengz.mungcourse.exception.DogNotFoundException;
 import com._dengz.mungcourse.exception.DogAccessForbiddenException;
+import com._dengz.mungcourse.exception.WalkNotFoundException;
+import com._dengz.mungcourse.exception.WalkAccessForbiddenException;
 import com._dengz.mungcourse.repository.WalkDogRepository;
 import com._dengz.mungcourse.repository.WalkRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,5 +71,61 @@ public class WalkService {
         }
 
         return WalkResponse.create(walk, dogs, walkRequest.getGpsData());
+    }
+
+    @Transactional(readOnly = true)
+    public WalkResponse searchWalkDetail(Long id, User user) {
+        Walk walk = walkRepository.findById(id)
+                .orElseThrow(WalkNotFoundException::new);
+
+        if (!walk.getUser().getId().equals(user.getId())) {
+            throw new WalkAccessForbiddenException(); // 자신 소유가 아닌 walk 조회 방지
+        }
+
+        // 중간 테이블을 통해 강아지 ID 리스트 조회
+        List<Dog> dogs = walkDogRepository.findAllByWalk(walk)
+                .stream()
+                .map(WalkDog::getDog)
+                .toList();
+
+        // GPS 데이터 역직렬화
+        List<WalkRequest.GpsPoint> gpsPoints;
+        try {
+            gpsPoints = objectMapper.readValue(walk.getGpsData(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, WalkRequest.GpsPoint.class));
+        } catch (JsonProcessingException e) {
+            throw new GpsDeserializationFailedException(); // 따로 정의 필요
+        }
+
+        return WalkResponse.create(walk, dogs, gpsPoints);
+    }
+
+    @Transactional(readOnly = true)
+    public List<WalkSimpleResponse> getWalksByDogId(Long id, User user) {
+        Dog dog = dogRepository.findById(id)
+                .orElseThrow(DogNotFoundException::new);
+
+        if (!dog.getUser().getId().equals(user.getId())) {
+            throw new DogAccessForbiddenException();
+        }
+
+        List<WalkDog> walkDogs = walkDogRepository.findAllByDog(dog);
+
+        return walkDogs.stream()
+                .map(WalkDog::getWalk)
+                .map(WalkSimpleResponse::create)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteWalk(Long id, User user) {
+        Walk walk = walkRepository.findById(id)
+                .orElseThrow(WalkNotFoundException::new);
+
+        if (!walk.getUser().getId().equals(user.getId())) {
+            throw new WalkAccessForbiddenException();
+        }
+
+        walkRepository.delete(walk); // cascade에 의해 WalkDog도 함께 삭제됨
     }
 }

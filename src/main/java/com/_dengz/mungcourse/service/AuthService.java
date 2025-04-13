@@ -26,7 +26,7 @@ public class AuthService {
         }
 
         else if (!tokenProvider.isNotExpiredToken(refreshToken)) {
-            throw new RefeshTokenExpiredException();
+            throw new RefreshTokenExpiredException();
         }
 
         String sub = tokenProvider.extractSub(refreshToken)
