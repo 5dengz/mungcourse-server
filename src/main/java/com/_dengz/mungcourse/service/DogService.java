@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 public class DogService {
     private final DogRepository dogRepository;
 
+    @Transactional(readOnly = true)
     public List<DogListResponse> searchAllDogs(User user) {
 
         List<Dog> dogs = dogRepository.findAllByUser(user);
@@ -50,6 +51,7 @@ public class DogService {
 
     }
 
+    @Transactional(readOnly = true)
     public MainDogResponse searchMainDog(User user) {
 
         Dog mainDog = dogRepository.findByUserAndIsMainTrue(user)
@@ -58,6 +60,7 @@ public class DogService {
         return MainDogResponse.create(mainDog);
     }
 
+    @Transactional(readOnly = true)
     public DogResponse searchDogDetail(Long id, User user) {
 
         Dog dog = dogRepository.findById(id)

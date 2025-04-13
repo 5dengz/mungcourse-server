@@ -7,10 +7,12 @@ import com._dengz.mungcourse.dto.dog.request.DogUpdateRequest;
 import com._dengz.mungcourse.dto.dog.response.DogListResponse;
 import com._dengz.mungcourse.dto.dog.response.DogResponse;
 import com._dengz.mungcourse.dto.dog.response.MainDogResponse;
+import com._dengz.mungcourse.dto.walk.WalkSimpleResponse;
 import com._dengz.mungcourse.jwt.TokenProvider;
 import com._dengz.mungcourse.jwt.UserPrincipal;
 import com._dengz.mungcourse.service.AuthService;
 import com._dengz.mungcourse.service.DogService;
+import com._dengz.mungcourse.service.WalkService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,8 +29,8 @@ import java.util.List;
 public class DogController {
 
     private final DogService dogService;
-    private final TokenProvider tokenProvider;
-    private final AuthService authService;
+    private final WalkService walkService;
+
     @GetMapping()
     @Operation(summary = "등록한 강아지 전부 가져오기", description = "유저의 강아지를 모두 가져옵니다.")
     public DataResponse<List<DogListResponse>> findDogList(@AuthenticationPrincipal UserPrincipal principal) {
@@ -74,5 +76,12 @@ public class DogController {
     @Operation(summary = "대표 강아지 설정", description = "dogId에 해당하는 강아지를 대표 강아지로 설정하고, 기존 강아지는 취소합니다.")
     public DataResponse<DogResponse> changeMainDog(@PathVariable("dogId") Long id, @AuthenticationPrincipal UserPrincipal principal) {
         return DataResponse.ok(dogService.setMainDog(id, principal.getUser()));
+    }
+
+    @GetMapping("/{dogId}/walks")
+    @Operation(summary = "특정 강아지의 산책 기록 조회", description = "해당 dogId의 강아지 산책 기록을 가져옵니다.")
+    public DataResponse<List<WalkSimpleResponse>> searchSimpleWalksByDogId(@PathVariable("dogId") Long id,
+                                                                           @AuthenticationPrincipal UserPrincipal principal) {
+        return DataResponse.ok(walkService.getWalksByDogId(id, principal.getUser()));
     }
 }

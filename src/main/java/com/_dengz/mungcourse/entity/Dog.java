@@ -49,7 +49,7 @@ public class Dog {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "dog", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "dog", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<WalkDog> walkDogs;
 
     private Dog(String name, String gender, LocalDate birthDate, String breed, Float weight, LocalDateTime postedAt,

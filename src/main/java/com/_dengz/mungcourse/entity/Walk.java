@@ -42,7 +42,7 @@ public class Walk {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "walk", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "walk", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<WalkDog> walkDogs;
 
     private Walk(Float distanceKm, Integer durationSec, Integer calories, String gpsData,
