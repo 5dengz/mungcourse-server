@@ -1,6 +1,10 @@
 package com._dengz.mungcourse.service;
 
-import com._dengz.mungcourse.dto.dog.*;
+import com._dengz.mungcourse.dto.dog.request.DogRequest;
+import com._dengz.mungcourse.dto.dog.request.DogUpdateRequest;
+import com._dengz.mungcourse.dto.dog.response.DogListResponse;
+import com._dengz.mungcourse.dto.dog.response.DogResponse;
+import com._dengz.mungcourse.dto.dog.response.MainDogResponse;
 import com._dengz.mungcourse.entity.Dog;
 import com._dengz.mungcourse.entity.User;
 import com._dengz.mungcourse.exception.DogAccessForbiddenException;
@@ -9,7 +13,6 @@ import com._dengz.mungcourse.exception.DogNotFoundException;
 import com._dengz.mungcourse.exception.MainDogNotFoundException;
 import com._dengz.mungcourse.jwt.TokenProvider;
 import com._dengz.mungcourse.repository.DogRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,13 +23,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DogService {
-    private final TokenProvider tokenProvider;
     private final DogRepository dogRepository;
-    private final AuthService authService;
 
     public List<DogListResponse> searchAllDogs(User user) {
 
         List<Dog> dogs = dogRepository.findAllByUser(user);
+
 
         if (dogs.isEmpty()) {
             throw new DogListNotFoundException();

@@ -1,6 +1,6 @@
 package com._dengz.mungcourse.entity;
 
-import com._dengz.mungcourse.dto.dog.DogUpdateRequest;
+import com._dengz.mungcourse.dto.dog.request.DogUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

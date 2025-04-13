@@ -1,20 +1,15 @@
-package com._dengz.mungcourse.dto.dog;
+package com._dengz.mungcourse.dto.dog.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
-public class DogRequest {
-
+public class DogUpdateRequest {
 
     private String name;
-    @NotBlank
     private String gender;
     private String breed;
 
@@ -24,10 +19,7 @@ public class DogRequest {
 
     private Float weight;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime postedAt = LocalDateTime.now();
-
     private Boolean hasArthritis;
-    private Boolean neutered ;
+    private Boolean neutered;
     private String dogImgUrl;
 }

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final TokenProvider tokenProvider;
-    private final UserRepository userRepository;
 
     public AccessTokenAndRefreshTokenResponse rotateTokens(String refreshToken) {
 

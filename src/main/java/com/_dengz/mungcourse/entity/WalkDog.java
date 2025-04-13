@@ -25,4 +25,13 @@ public class WalkDog {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dog_id", nullable = false)
     private Dog dog;
+
+    private WalkDog(Walk walk, Dog dog) {
+        this.walk = walk;
+        this.dog = dog;
+    }
+
+    public static WalkDog create(Walk walk, Dog dog) {
+        return new WalkDog(walk, dog);
+    }
 }

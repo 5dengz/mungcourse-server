@@ -1,5 +1,6 @@
 package com._dengz.mungcourse.entity;
 
+import com._dengz.mungcourse.dto.walk.WalkRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -28,7 +29,7 @@ public class Walk {
     private Integer calories;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String gpsData;
 
     @Column(nullable = false)
@@ -43,4 +44,22 @@ public class Walk {
 
     @OneToMany(mappedBy = "walk", fetch = FetchType.LAZY)
     private List<WalkDog> walkDogs;
+
+    private Walk(Float distanceKm, Integer durationSec, Integer calories, String gpsData,
+                         LocalDateTime startedAt, LocalDateTime endedAt, User user)
+    {
+        this.distanceKm = distanceKm;
+        this.durationSec = durationSec;
+        this.calories = calories;
+        this.gpsData = gpsData;
+        this.startedAt = startedAt;
+        this.endedAt = endedAt;
+        this.user = user;
+    }
+
+    public static Walk create(Float distanceKm, Integer durationSec, Integer calories, String gpsData,
+                       LocalDateTime startedAt, LocalDateTime endedAt, User user)
+    {
+        return new Walk(distanceKm, durationSec, calories, gpsData, startedAt, endedAt, user);
+    }
 }

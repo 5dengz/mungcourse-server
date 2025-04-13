@@ -1,4 +1,4 @@
-package com._dengz.mungcourse.dto.dog;
+package com._dengz.mungcourse.dto.dog.response;
 
 import com._dengz.mungcourse.entity.Dog;
 import com.fasterxml.jackson.annotation.JsonProperty;
