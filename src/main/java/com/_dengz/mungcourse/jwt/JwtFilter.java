@@ -13,6 +13,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import com._dengz.mungcourse.entity.RefreshToken;
@@ -24,9 +28,9 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
+    private static final String LOGIN_URL = "/v1/auth/google/login";
 
     private final TokenProvider tokenProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final SecurityProperties securityProperties;
     private final AntPathMatcher pathMatcher;
@@ -46,28 +50,51 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+        if (request.getRequestURI().equals(LOGIN_URL)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String accessToken = tokenProvider.extractAccessToken(request).orElse(null);
 
         // Access Token이 아예 없는 상황
         if (accessToken == null) {
             sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_NOT_FOUND);
             return;
-        }
-
-        // Access Token이 만료된 상황
-        if (!tokenProvider.isNotExpiredToken(accessToken)) {
+        } else if (!tokenProvider.isValidAccessToken(accessToken)) {
+            sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_INVALID);
+            return;
+        } else if (!tokenProvider.isNotExpiredToken(accessToken)) {
             sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_EXPIRED);
             return;
         }
-
-        // Access Token이 유효하지 않은 상황
-        if (!tokenProvider.isValidAccessToken(accessToken)) {
-            sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_INVALID); // 위조되었거나 DB에 연결되지 않은 경우
-            return;
+        else { // Access Token이 있고 유효한 상황
+            checkAccessTokenAndAuthentication(response, accessToken);
+            filterChain.doFilter(request, response);
         }
+    }
+
+    private void checkAccessTokenAndAuthentication(HttpServletResponse response, String accessToken) {
+        tokenProvider.extractSub(accessToken)
+                .flatMap(userRepository::findBySub)
+                .ifPresentOrElse(
+                        this::saveAuthentication,
+                        () -> sendErrorResponse(response, GlobalErrorCode.USER_NOT_FOUND)
+                );
 
     }
 
+    private void saveAuthentication(User user) {
+        UserDetails userDetails = new UserPrincipal(user); // 우리가 만든 UserDetails 구현체
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities() // 빈 리스트일 수 있음
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
 
     private void sendErrorResponse(HttpServletResponse response, GlobalErrorCode errorCode) {
         // HTTP 상태 코드만 따로 지정 (HTTP 헤더)

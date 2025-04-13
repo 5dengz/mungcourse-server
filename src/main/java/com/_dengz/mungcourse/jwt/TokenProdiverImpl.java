@@ -95,11 +95,8 @@ public class TokenProdiverImpl implements TokenProvider{
 
     @Override
     public Optional<String> extractSub(String token) {
-        try {
-            return Optional.ofNullable(getClaims(token).get(USER_SUB, String.class));
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        return getClaims(token)
+                .map(claims -> claims.get(USER_SUB, String.class));
     }
 
     @Override
@@ -110,8 +107,9 @@ public class TokenProdiverImpl implements TokenProvider{
 
     @Override
     public boolean isNotExpiredToken(String token) {
-        Date expiration = getClaims(token).getExpiration();
-        return expiration.after(new Date());
+        return getClaims(token)
+                .map(claims -> claims.getExpiration().after(new Date()))
+                .orElse(false); // 파싱 실패 시 false 반환
     }
 
     @Override
@@ -141,21 +139,27 @@ public class TokenProdiverImpl implements TokenProvider{
         }
     }
 
-    private Claims getClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(jwtProperties.getSecret().getBytes())
-                .parseClaimsJws(token)
-                .getBody();
+    private Optional<Claims> getClaims(String token) {
+        try {
+            return Optional.of(Jwts.parser()
+                    .setSigningKey(jwtProperties.getSecret().getBytes())
+                    .parseClaimsJws(token)
+                    .getBody());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     private boolean isAccessToken(String token) {
-        Claims claims = getClaims(token);
-        return claims.getSubject().equals(ACCESS_TOKEN_SUBJECT);
+        return getClaims(token)
+                .map(claims -> ACCESS_TOKEN_SUBJECT.equals(claims.getSubject()))
+                .orElse(false); // 파싱 실패 = 위조 or 변조 → false
     }
 
     private boolean isRefreshToken(String token) {
-        Claims claims = getClaims(token);
-        return claims.getSubject().equals(REFRESH_TOKEN_SUBJECT);
+        return getClaims(token)
+                .map(claims -> REFRESH_TOKEN_SUBJECT.equals(claims.getSubject()))
+                .orElse(false); // 파싱 실패 = 위조 or 변조 → false
     }
 
     private User getUserBySub(String sub) {

@@ -3,7 +3,8 @@ package com._dengz.mungcourse.service;
 import com._dengz.mungcourse.dto.UserInfoDto;
 import com._dengz.mungcourse.dto.auth.OAuth2Response;
 import com._dengz.mungcourse.entity.User;
-import com._dengz.mungcourse.exception.GoogleInvalidTokenException;
+import com._dengz.mungcourse.exception.GoogleIdTokenInvalidException;
+import com._dengz.mungcourse.exception.GoogleIdTokenNotFoundException;
 import com._dengz.mungcourse.exception.PublicKeyNotFoundException;
 import com._dengz.mungcourse.jwt.TokenProvider;
 import com._dengz.mungcourse.properties.GoogleOAuth2Properties;
@@ -39,7 +40,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
     @Override
     public OAuth2Response authenticate(String idToken) {
         if (!validateIdToken(idToken)) {
-            throw new GoogleInvalidTokenException();
+            throw new GoogleIdTokenInvalidException();
         }
 
         // Google에서 사용자 정보를 추출
@@ -64,6 +65,11 @@ public class GoogleOAuth2Service implements OAuth2Service{
 
     @Override
     public boolean validateIdToken(String idToken) {
+
+        // idToken 값이 비어져있으면 에러 처리
+        if (idToken.isEmpty())
+                throw new GoogleIdTokenNotFoundException();
+
         // Google의 공개키를 사용하여 id_token 검증
         try {
             // Google의 공개키 가져오기
