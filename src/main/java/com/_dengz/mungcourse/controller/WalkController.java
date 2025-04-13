@@ -9,8 +9,12 @@ import com._dengz.mungcourse.service.WalkService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Tag(name = "Walk", description = "산책 관련 API")
 @RestController
@@ -24,6 +28,13 @@ public class WalkController {
     @Operation(summary = "산책 기록 저장", description = "프론트에서 넘겨주는 산책의 정보를 저장합니다.")
     public DataResponse<WalkResponse> saveWalk(@RequestBody WalkRequest walkRequest, @AuthenticationPrincipal UserPrincipal principal) {
         return DataResponse.ok(walkService.saveWalk(walkRequest, principal.getUser()));
+    }
+
+    @GetMapping()
+    @Operation(summary = "특정 날짜의 산책 기록 조회", description = "YYYY-MM-DD 형식의 date 파라미터로 해당 날짜의 산책 기록을 조회합니다.")
+    public DataResponse<List<WalkResponse>> getWalksByDate(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                                           @AuthenticationPrincipal UserPrincipal principal) {
+        return DataResponse.ok(walkService.findWalksByDate(date, principal.getUser()));
     }
 
     @GetMapping("/{walkId}")

@@ -34,8 +34,8 @@ public class AuthController {
 
     @PostMapping("/google/login")
     @Operation(summary = "구글 OAuth 로그인 및 회원가입", description = "모바일에서 구글 소셜 로그인으로 회원가입 및 바로 로그인 합니다")
-    public DataResponse<OAuth2Response> googleOAuthLoginOrRegister(@RequestBody IdTokenRequest request) {
-        return DataResponse.ok(googleOAuth2Service.authenticate(request.getIdToken()));
+    public DataResponse<OAuth2Response> googleOAuthLoginOrRegister(@RequestBody IdTokenRequest idTokenRequest) {
+        return DataResponse.ok(googleOAuth2Service.authenticate(idTokenRequest.getIdToken()));
     }
 
     @PostMapping("/refresh")

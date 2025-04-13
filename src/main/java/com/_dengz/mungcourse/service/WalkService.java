@@ -22,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,6 +75,37 @@ public class WalkService {
 
         return WalkResponse.create(walk, dogs, walkRequest.getGpsData());
     }
+
+
+    @Transactional(readOnly = true)
+    public List<WalkResponse> findWalksByDate(LocalDate date, User user) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        List<Walk> walks = walkRepository.findAllByUserAndStartedAtBetween(user, startOfDay, endOfDay);
+
+        if (walks.isEmpty()) {
+            throw new WalkNotFoundException();
+        }
+
+        return walks.stream().map(walk -> { // walk는 walks 리스트에 있는 데이터 하나이고 해당 리스트 반복해서 walkResponse의 List를 만듦
+            List<Dog> dogs = walkDogRepository.findAllByWalk(walk)
+                    .stream()
+                    .map(WalkDog::getDog)
+                    .toList();
+
+            List<WalkRequest.GpsPoint> gpsPoints;
+            try {
+                gpsPoints = objectMapper.readValue(walk.getGpsData(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, WalkRequest.GpsPoint.class));
+            } catch (JsonProcessingException e) {
+                throw new GpsDeserializationFailedException();
+            }
+
+            return WalkResponse.create(walk, dogs, gpsPoints);
+        }).collect(Collectors.toList()); // 이거로 리스트화
+    }
+
 
     @Transactional(readOnly = true)
     public WalkResponse searchWalkDetail(Long id, User user) {
