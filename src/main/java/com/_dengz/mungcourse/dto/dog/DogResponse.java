@@ -2,6 +2,7 @@ package com._dengz.mungcourse.dto.dog;
 
 import com._dengz.mungcourse.entity.Dog;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
@@ -30,6 +31,7 @@ public class DogResponse {
     private final Boolean hasArthritis;
     private final Boolean neutered ;
     private final String dogImgUrl;
+    @JsonProperty("isMain")
     private final Boolean isMain;
 
     private DogResponse(String name, String gender, String breed, LocalDate birthDate,

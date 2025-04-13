@@ -1,10 +1,8 @@
 package com._dengz.mungcourse.controller;
 
+import com._dengz.mungcourse.dto.common.BaseResponse;
 import com._dengz.mungcourse.dto.common.DataResponse;
-import com._dengz.mungcourse.dto.dog.DogListResponse;
-import com._dengz.mungcourse.dto.dog.DogRequest;
-import com._dengz.mungcourse.dto.dog.DogResponse;
-import com._dengz.mungcourse.dto.dog.MainDogResponse;
+import com._dengz.mungcourse.dto.dog.*;
 import com._dengz.mungcourse.entity.User;
 import com._dengz.mungcourse.exception.AccessTokenNotFoundException;
 import com._dengz.mungcourse.exception.UserNotFoundException;
@@ -55,5 +53,26 @@ public class DogController {
     public DataResponse<DogResponse> findDogDetail(@PathVariable("dogId") Long id,
                                                    @AuthenticationPrincipal UserPrincipal principal) {
         return DataResponse.ok(dogService.searchDogDetail(id, principal.getUser()));
+    }
+
+    @PatchMapping("/{dogId}")
+    @Operation(summary = "강아지 정보 수정", description = "강아지의 프로필을 수정합니다.")
+    public DataResponse<DogResponse> updateDogDetail(@PathVariable("dogId") Long id,
+                                                     @RequestBody @Valid DogUpdateRequest dogUpdateRequest,
+                                                     @AuthenticationPrincipal UserPrincipal principal) {
+        return DataResponse.ok(dogService.updateDog(id, dogUpdateRequest, principal.getUser()));
+    }
+
+    @DeleteMapping("/{dogId}")
+    @Operation(summary = "강아지 정보 삭제", description = "강아지를 삭제하고, 메인 강아지를 삭제한 경우 가장 오래된 강아지를 메인으로 설정합니다.")
+    public BaseResponse deleteDog(@PathVariable("dogId") Long id, @AuthenticationPrincipal UserPrincipal principal) {
+        dogService.deleteDog(id, principal.getUser());
+        return DataResponse.ok("성공적으로 삭제되었습니다.");
+    }
+
+    @PatchMapping("/{dogId}/main")
+    @Operation(summary = "대표 강아지 설정", description = "dogId에 해당하는 강아지를 대표 강아지로 설정하고, 기존 강아지는 취소합니다.")
+    public DataResponse<DogResponse> changeMainDog(@PathVariable("dogId") Long id, @AuthenticationPrincipal UserPrincipal principal) {
+        return DataResponse.ok(dogService.setMainDog(id, principal.getUser()));
     }
 }

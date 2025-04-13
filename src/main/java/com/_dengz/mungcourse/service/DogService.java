@@ -1,9 +1,6 @@
 package com._dengz.mungcourse.service;
 
-import com._dengz.mungcourse.dto.dog.DogListResponse;
-import com._dengz.mungcourse.dto.dog.DogRequest;
-import com._dengz.mungcourse.dto.dog.DogResponse;
-import com._dengz.mungcourse.dto.dog.MainDogResponse;
+import com._dengz.mungcourse.dto.dog.*;
 import com._dengz.mungcourse.entity.Dog;
 import com._dengz.mungcourse.entity.User;
 import com._dengz.mungcourse.exception.DogAccessForbiddenException;
@@ -15,6 +12,7 @@ import com._dengz.mungcourse.repository.DogRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,5 +66,62 @@ public class DogService {
         }
 
         return DogResponse.create(dog);
+    }
+
+    @Transactional
+    public DogResponse updateDog(Long id, DogUpdateRequest dogUpdateRequest, User user) {
+
+        Dog dog = dogRepository.findById(id)
+                .orElseThrow(DogNotFoundException::new); // 강아지가 아예 존재하지 않을 때
+
+        if (!dog.getUser().getId().equals(user.getId())) {
+            throw new DogAccessForbiddenException(); // 유저가 접근 권한 없을 때
+        }
+
+        dog.updateDogInfo(dogUpdateRequest);
+
+        return DogResponse.create(dog);
+    }
+
+    @Transactional
+    public void deleteDog(Long id, User user) {
+        Dog dog = dogRepository.findById(id)
+                .orElseThrow(DogNotFoundException::new);
+
+        if (!dog.getUser().getId().equals(user.getId())) {
+            throw new DogAccessForbiddenException();
+        }
+
+        boolean wasMain = dog.getIsMain();
+
+        dogRepository.delete(dog);
+
+        // 삭제한 강아지가 메인이었으면, 가장 오래된 강아지를 메인으로 설정
+        if (wasMain) {
+            dogRepository.findFirstByUserOrderByPostedAtAsc(user)
+                    .ifPresent(oldestDog -> oldestDog.setIsMain(true));
+        }
+    }
+
+    @Transactional
+    public DogResponse setMainDog(Long id, User user) {
+        // 1. 현재 메인 강아지 → isMain = false
+        dogRepository.findByUserAndIsMainTrue(user)
+                .ifPresent(dog -> dog.setIsMain(false));
+
+        // 2. 바꾸려는 강아지 찾기
+        Dog newMainDog = dogRepository.findById(id)
+                .orElseThrow(DogNotFoundException::new);
+
+        // 3. 유저 검증
+        if (!newMainDog.getUser().getId().equals(user.getId())) {
+            throw new DogAccessForbiddenException();
+        }
+
+        // 4. 해당 강아지를 메인으로 설정
+        newMainDog.setIsMain(true);
+
+        // 5. 응답
+        return DogResponse.create(newMainDog);
     }
 }

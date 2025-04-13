@@ -1,5 +1,6 @@
 package com._dengz.mungcourse.entity;
 
+import com._dengz.mungcourse.dto.dog.DogUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -69,5 +70,16 @@ public class Dog {
     public static Dog create(String name, String gender, LocalDate birthDate, String breed, Float weight, LocalDateTime postedAt,
                              Boolean hasArthritis, Boolean neutered, String dogImgUrl, Boolean isMain, User user) {
         return new Dog(name, gender, birthDate, breed, weight, postedAt, hasArthritis, neutered, dogImgUrl, isMain, user);
+    }
+
+    public void updateDogInfo(DogUpdateRequest req) {
+        if (req.getName() != null) this.name = req.getName();
+        if (req.getGender() != null) this.gender = req.getGender();
+        if (req.getBreed() != null) this.breed = req.getBreed();
+        if (req.getBirthDate() != null) this.birthDate = req.getBirthDate();
+        if (req.getWeight() != null) this.weight = req.getWeight();
+        if (req.getHasArthritis() != null) this.hasArthritis = req.getHasArthritis();
+        if (req.getNeutered() != null) this.neutered = req.getNeutered();
+        if (req.getDogImgUrl() != null) this.dogImgUrl = req.getDogImgUrl();
     }
 }
