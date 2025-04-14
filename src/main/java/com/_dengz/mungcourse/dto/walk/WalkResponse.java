@@ -20,11 +20,13 @@ public class WalkResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endedAt;
 
+    private Integer routeRating;
+
     private List<Long> dogIds;
     private List<WalkRequest.GpsPoint> gpsData;
 
     private WalkResponse(Long id, Float distanceKm, Integer durationSec, Integer calories,
-                         LocalDateTime startedAt, LocalDateTime endedAt, List<Long> dogIds,
+                         LocalDateTime startedAt, LocalDateTime endedAt, Integer routeRating, List<Long> dogIds,
                          List<WalkRequest.GpsPoint> gpsData)
     {
         this.id = id;
@@ -33,6 +35,7 @@ public class WalkResponse {
         this.calories = calories;
         this.startedAt = startedAt;
         this.endedAt = endedAt;
+        this.routeRating = routeRating;
         this.dogIds = dogIds;
         this.gpsData = gpsData;
     }
@@ -45,6 +48,7 @@ public class WalkResponse {
                 walk.getCalories(),
                 walk.getStartedAt(),
                 walk.getEndedAt(),
+                walk.getRouteRating(),
                 dogs.stream().map(Dog::getId).toList(),
                 gpsData
         );

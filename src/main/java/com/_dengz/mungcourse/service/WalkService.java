@@ -10,8 +10,6 @@ import com._dengz.mungcourse.entity.WalkDog;
 import com._dengz.mungcourse.exception.GpsSerializationFailedException;
 import com._dengz.mungcourse.exception.GpsDeserializationFailedException;
 import com._dengz.mungcourse.repository.DogRepository;
-import com._dengz.mungcourse.exception.DogNotFoundException;
-import com._dengz.mungcourse.exception.DogAccessForbiddenException;
 import com._dengz.mungcourse.exception.WalkNotFoundException;
 import com._dengz.mungcourse.exception.WalkAccessForbiddenException;
 import com._dengz.mungcourse.repository.WalkDogRepository;
@@ -54,7 +52,7 @@ public class WalkService {
         String gpsJson = gpsSerializate(walkRequest);
 
         Walk walk = Walk.create(walkRequest.getDistanceKm(), walkRequest.getDurationSec(),
-                walkRequest.getCalories(), gpsJson, walkRequest.getStartedAt(), walkRequest.getEndedAt(), user);
+                walkRequest.getCalories(), gpsJson, walkRequest.getStartedAt(), walkRequest.getEndedAt(), walkRequest.getRouteRating(), user);
 
         walkRepository.save(walk);
 
@@ -137,7 +135,7 @@ public class WalkService {
         return walk;
     }
 
-    public String gpsSerializate (WalkRequest walkRequest) {
+    public String gpsSerializate(WalkRequest walkRequest) {
         try {
             String gpsJson = objectMapper.writeValueAsString(walkRequest.getGpsData());
             return gpsJson;
@@ -146,7 +144,7 @@ public class WalkService {
         }
     }
 
-    public List<WalkRequest.GpsPoint> gpsDeserializate (Walk walk) {
+    public List<WalkRequest.GpsPoint> gpsDeserializate(Walk walk) {
         try {
             List<WalkRequest.GpsPoint> gpsPoints = objectMapper.readValue(walk.getGpsData(),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, WalkRequest.GpsPoint.class));
