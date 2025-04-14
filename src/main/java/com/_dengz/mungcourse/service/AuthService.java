@@ -45,7 +45,7 @@ public class AuthService {
     }
 
     public void logoutUser(String refreshToken) {
-        if (refreshToken != null) {
+        if (refreshToken != null) { // null이면 아무것도 실행되지 않음
             tokenProvider.extractSub(refreshToken)
                     .ifPresent(tokenProvider::disableRefreshToken);
         }
