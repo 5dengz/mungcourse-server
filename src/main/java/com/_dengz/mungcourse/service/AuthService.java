@@ -9,12 +9,14 @@ import com._dengz.mungcourse.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final TokenProvider tokenProvider;
+    private final UserRepository userRepository;
 
     public AccessTokenAndRefreshTokenResponse rotateTokens(String refreshToken) {
 
@@ -40,5 +42,18 @@ public class AuthService {
 
     public UserInfoDto getUserInfo(User user) {
         return UserInfoDto.create(user);
+    }
+
+    public void logoutUser(String refreshToken) {
+        if (refreshToken != null) {
+            tokenProvider.extractSub(refreshToken)
+                    .ifPresent(tokenProvider::disableRefreshToken);
+        }
+    }
+
+    @Transactional
+    public void deleteUser(String sub, String refreshToken) {
+        userRepository.deleteBySub(sub);
+        logoutUser(refreshToken);
     }
 }

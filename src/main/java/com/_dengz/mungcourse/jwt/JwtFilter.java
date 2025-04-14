@@ -50,15 +50,9 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        if (request.getRequestURI().equals(LOGIN_URL)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         String accessToken = tokenProvider.extractAccessToken(request).orElse(null);
 
-        // Access Token이 아예 없는 상황
-        if (accessToken == null) {
+        if (accessToken == null) { // Access Token이 아예 없는 상황
             sendErrorResponse(response, GlobalErrorCode.ACCESS_TOKEN_NOT_FOUND);
             return;
         } else if (!tokenProvider.isValidAccessToken(accessToken)) { // Acess Token이 있는데 유효하지 않은 상황
