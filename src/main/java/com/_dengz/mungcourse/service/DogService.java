@@ -63,12 +63,7 @@ public class DogService {
     @Transactional(readOnly = true)
     public DogResponse searchDogDetail(Long id, User user) {
 
-        Dog dog = dogRepository.findById(id)
-                .orElseThrow(DogNotFoundException::new); // 강아지가 아예 존재하지 않을 때
-
-        if (!dog.getUser().getId().equals(user.getId())) {
-            throw new DogAccessForbiddenException(); // 유저가 접근 권한 없을 때
-        }
+        Dog dog = findAndCheckDogById(id, user);
 
         return DogResponse.create(dog);
     }
@@ -76,12 +71,7 @@ public class DogService {
     @Transactional
     public DogResponse updateDog(Long id, DogUpdateRequest dogUpdateRequest, User user) {
 
-        Dog dog = dogRepository.findById(id)
-                .orElseThrow(DogNotFoundException::new); // 강아지가 아예 존재하지 않을 때
-
-        if (!dog.getUser().getId().equals(user.getId())) {
-            throw new DogAccessForbiddenException(); // 유저가 접근 권한 없을 때
-        }
+        Dog dog = findAndCheckDogById(id, user);
 
         dog.updateDogInfo(dogUpdateRequest);
 
@@ -90,12 +80,7 @@ public class DogService {
 
     @Transactional
     public void deleteDog(Long id, User user) {
-        Dog dog = dogRepository.findById(id)
-                .orElseThrow(DogNotFoundException::new);
-
-        if (!dog.getUser().getId().equals(user.getId())) {
-            throw new DogAccessForbiddenException();
-        }
+        Dog dog = findAndCheckDogById(id, user);
 
         boolean wasMain = dog.getIsMain();
 
@@ -128,5 +113,16 @@ public class DogService {
 
         // 5. 응답
         return DogResponse.create(newMainDog);
+    }
+
+    public Dog findAndCheckDogById(Long id, User user) {
+        Dog dog = dogRepository.findById(id)
+                .orElseThrow(DogNotFoundException::new); // 강아지가 아예 존재하지 않을 때
+
+        if (!dog.getUser().getId().equals(user.getId())) {
+            throw new DogAccessForbiddenException(); // 유저가 접근 권한 없을 때
+        }
+
+        return dog;
     }
 }

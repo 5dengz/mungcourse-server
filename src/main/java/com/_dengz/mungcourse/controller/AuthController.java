@@ -54,7 +54,7 @@ public class AuthController {
                 .ifPresent(refreshToken -> {
                     tokenProvider.extractSub(refreshToken)
                             .ifPresent(sub -> {
-                                tokenProvider.disableRefreshToken(sub);
+                                tokenProvider.disableRefreshToken(sub); // 리프레시 토큰의 유효성, 만료 여부와 상관 없이 그냥 삭제해버림
                             });
                 });
         return DataResponse.ok("로그아웃 되었습니다.");

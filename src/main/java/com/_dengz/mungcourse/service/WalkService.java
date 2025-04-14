@@ -37,38 +37,28 @@ public class WalkService {
     private final WalkRepository walkRepository;
     private final WalkDogRepository walkDogRepository;
     private final ObjectMapper objectMapper;
+    private final DogService dogService;
 
     @Transactional
     public WalkResponse saveWalk(WalkRequest walkRequest, User user) {
-        // 1. 강아지 조회 및 유효성 검사
+        // 강아지 조회 및 유효성 검사
         List<Dog> dogs = new ArrayList<>();
 
         for (Long id : walkRequest.getDogIds()) {
-            Dog dog = dogRepository.findById(id)
-                    .orElseThrow(DogNotFoundException::new); // 없는 강아지
-
-            if (!dog.getUser().getId().equals(user.getId())) {
-                throw new DogAccessForbiddenException(); // 권한 없음
-            }
+            Dog dog = dogService.findAndCheckDogById(id, user);
 
             dogs.add(dog); // 검증 통과한 강아지만 리스트에 추가
         }
 
-        // 2. gpsData를 json 형식으로 파싱
-        String gpsJson;
-
-        try {
-            gpsJson = objectMapper.writeValueAsString(walkRequest.getGpsData());
-        } catch (JsonProcessingException e) {
-            throw new GpsSerializationFailedException();
-        }
+        // gpsData를 json 형식 문자열로 파싱
+        String gpsJson = gpsSerializate(walkRequest);
 
         Walk walk = Walk.create(walkRequest.getDistanceKm(), walkRequest.getDurationSec(),
                 walkRequest.getCalories(), gpsJson, walkRequest.getStartedAt(), walkRequest.getEndedAt(), user);
 
         walkRepository.save(walk);
 
-        // 3. WalkDog 중간 엔티티 저장
+        // WalkDog 중간 엔티티 저장
         for (Dog dog : dogs) {
             walkDogRepository.save(WalkDog.create(walk, dog));
         }
@@ -94,13 +84,7 @@ public class WalkService {
                     .map(WalkDog::getDog)
                     .toList();
 
-            List<WalkRequest.GpsPoint> gpsPoints;
-            try {
-                gpsPoints = objectMapper.readValue(walk.getGpsData(),
-                        objectMapper.getTypeFactory().constructCollectionType(List.class, WalkRequest.GpsPoint.class));
-            } catch (JsonProcessingException e) {
-                throw new GpsDeserializationFailedException();
-            }
+            List<WalkRequest.GpsPoint> gpsPoints = gpsDeserializate(walk);
 
             return WalkResponse.create(walk, dogs, gpsPoints);
         }).collect(Collectors.toList()); // 이거로 리스트화
@@ -109,12 +93,7 @@ public class WalkService {
 
     @Transactional(readOnly = true)
     public WalkResponse searchWalkDetail(Long id, User user) {
-        Walk walk = walkRepository.findById(id)
-                .orElseThrow(WalkNotFoundException::new);
-
-        if (!walk.getUser().getId().equals(user.getId())) {
-            throw new WalkAccessForbiddenException(); // 자신 소유가 아닌 walk 조회 방지
-        }
+        Walk walk = findWalkAndCheckById(id, user);
 
         // 중간 테이블을 통해 강아지 ID 리스트 조회
         List<Dog> dogs = walkDogRepository.findAllByWalk(walk)
@@ -122,26 +101,15 @@ public class WalkService {
                 .map(WalkDog::getDog)
                 .toList();
 
-        // GPS 데이터 역직렬화
-        List<WalkRequest.GpsPoint> gpsPoints;
-        try {
-            gpsPoints = objectMapper.readValue(walk.getGpsData(),
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, WalkRequest.GpsPoint.class));
-        } catch (JsonProcessingException e) {
-            throw new GpsDeserializationFailedException(); // 따로 정의 필요
-        }
+        // GPS 데이터 역직렬화. 즉 json 리스트 형식으로 변환
+        List<WalkRequest.GpsPoint> gpsPoints = gpsDeserializate(walk);
 
         return WalkResponse.create(walk, dogs, gpsPoints);
     }
 
     @Transactional(readOnly = true)
     public List<WalkSimpleResponse> getWalksByDogId(Long id, User user) {
-        Dog dog = dogRepository.findById(id)
-                .orElseThrow(DogNotFoundException::new);
-
-        if (!dog.getUser().getId().equals(user.getId())) {
-            throw new DogAccessForbiddenException();
-        }
+        Dog dog = dogService.findAndCheckDogById(id, user);
 
         List<WalkDog> walkDogs = walkDogRepository.findAllByDog(dog);
 
@@ -153,6 +121,12 @@ public class WalkService {
 
     @Transactional
     public void deleteWalk(Long id, User user) {
+        Walk walk = findWalkAndCheckById(id, user);
+
+        walkRepository.delete(walk); // cascade에 의해 WalkDog도 함께 삭제됨
+    }
+
+    public Walk findWalkAndCheckById(Long id, User user) {
         Walk walk = walkRepository.findById(id)
                 .orElseThrow(WalkNotFoundException::new);
 
@@ -160,6 +134,25 @@ public class WalkService {
             throw new WalkAccessForbiddenException();
         }
 
-        walkRepository.delete(walk); // cascade에 의해 WalkDog도 함께 삭제됨
+        return walk;
+    }
+
+    public String gpsSerializate (WalkRequest walkRequest) {
+        try {
+            String gpsJson = objectMapper.writeValueAsString(walkRequest.getGpsData());
+            return gpsJson;
+        } catch (JsonProcessingException e) {
+            throw new GpsSerializationFailedException();
+        }
+    }
+
+    public List<WalkRequest.GpsPoint> gpsDeserializate (Walk walk) {
+        try {
+            List<WalkRequest.GpsPoint> gpsPoints = objectMapper.readValue(walk.getGpsData(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, WalkRequest.GpsPoint.class));
+            return gpsPoints;
+        } catch (JsonProcessingException e) {
+            throw new GpsDeserializationFailedException();
+        }
     }
 }
