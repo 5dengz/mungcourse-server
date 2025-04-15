@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: prod
   http:
     encoding:
       charset: UTF-8

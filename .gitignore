@@ -3,7 +3,7 @@
 .env.local
 .env.production
 .env.development
-application.yml
+application-prod.yml
 
 # 민감한 설정 파일
 *.pem
