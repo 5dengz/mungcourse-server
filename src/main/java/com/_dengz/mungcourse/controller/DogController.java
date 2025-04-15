@@ -39,7 +39,7 @@ public class DogController {
 
     @PostMapping()
     @Operation(summary = "강아지 정보 등록하기", description = "유저의 강아지를 등록합니다, 첫 등록이면 메인강아지로 등록합니다.")
-    public DataResponse<DogResponse> addDog(@RequestBody @Valid DogRequest dogRequest,
+    public DataResponse<DogResponse> saveDog(@RequestBody @Valid DogRequest dogRequest,
                                             @AuthenticationPrincipal UserPrincipal principal) {
         return DataResponse.ok(dogService.makeDog(dogRequest, principal.getUser()));
     }
@@ -69,7 +69,7 @@ public class DogController {
     @Operation(summary = "강아지 정보 삭제", description = "강아지를 삭제하고, 메인 강아지를 삭제한 경우 가장 오래된 강아지를 메인으로 설정합니다.")
     public BaseResponse deleteDog(@PathVariable("dogId") Long id, @AuthenticationPrincipal UserPrincipal principal) {
         dogService.deleteDog(id, principal.getUser());
-        return DataResponse.ok("성공적으로 삭제되었습니다.");
+        return DataResponse.ok("강아지 정보가 성공적으로 삭제되었습니다.");
     }
 
     @PatchMapping("/{dogId}/main")

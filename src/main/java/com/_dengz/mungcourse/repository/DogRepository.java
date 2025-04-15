@@ -12,4 +12,5 @@ public interface DogRepository extends JpaRepository<Dog, Long> {
     Optional<Dog> findByUserAndIsMainTrue(User user);
     List<Dog> findAllByUser(User user);
     Optional<Dog> findFirstByUserOrderByPostedAtAsc(User user);
+    Optional<Dog> findByDogImgUrl(String url);
 }

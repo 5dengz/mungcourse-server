@@ -47,6 +47,6 @@ public class WalkController {
     @Operation(summary = "산책 기록 삭제", description = "특정 산책 기록을 삭제합니다.")
     public BaseResponse deleteWalk(@PathVariable("walkId") Long id, @AuthenticationPrincipal UserPrincipal principal) {
         walkService.deleteWalk(id, principal.getUser());
-        return DataResponse.ok("성공적으로 삭제되었습니다.");
+        return DataResponse.ok("산책 기록이 성공적으로 삭제되었습니다.");
     }
 }
