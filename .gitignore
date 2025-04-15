@@ -3,7 +3,8 @@
 .env.local
 .env.production
 .env.development
-application.yml
+application-dev.yml
+application-prod.yml
 
 # 민감한 설정 파일
 *.pem
@@ -52,3 +53,4 @@ replay_pid*
 
 .gradle/buildOutputCleanup/buildOutputCleanup.lock
 .gradle/file-system.probe
+src/test/resources/application-test.yml

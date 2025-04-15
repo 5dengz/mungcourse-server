@@ -1,19 +1,22 @@
 spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  profiles:
+    active: dev
   http:
     encoding:
       charset: UTF-8
       enabled: true
       force: true
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/test
-    username:
-    password:
+
 
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:

@@ -1,0 +1,56 @@
+server:
+  port:
+
+# aws
+cloud:
+  aws:
+    credentials:
+      accessKey:
+      secretKey:
+    stack:
+      auto:
+    s3:
+      bucket:
+    region:
+      static:
+
+# jwt
+jwt:
+  issuer:
+  secret:
+  access:
+    expiration:
+    header:
+  refresh:
+    expiration:
+    header:
+
+spring:
+  data:
+    redis:
+      host:
+      port:
+      password:
+    http:
+      encoding:
+        charset:
+        force:
+    datasource:
+      driver-class-name:
+      url:
+      username:
+      password:
+    jpa:
+      hibernate:
+        ddl-auto:
+      properties:
+        hibernate:
+          dialect:
+
+security:
+  permit-urls:
+
+
+google:
+  publicKeysUrl:
+  clientId:
