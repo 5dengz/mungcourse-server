@@ -5,7 +5,7 @@ import com._dengz.mungcourse.dto.auth.OAuth2Response;
 import com._dengz.mungcourse.entity.User;
 
 public interface OAuth2Service {
-    // 소셜 로그인 인증
+    // 소셜 로그인 인증 후 로그인 및 회원가입 후 로그인
     OAuth2Response authenticate(String idToken);
 
     // idToken의 유효성 검증
@@ -19,6 +19,4 @@ public interface OAuth2Service {
 
     User updateUser(String sub, UserInfoDto userInfo);
 
-    // 로그아웃 처리
-    // void logout(Long userId);
 }
