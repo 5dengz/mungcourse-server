@@ -21,10 +21,10 @@ public class User {
     @Column(nullable = false)
     private String sub;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String name;
 
     @Column(nullable = false)
