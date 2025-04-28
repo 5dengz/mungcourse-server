@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,6 +65,29 @@ public class WalkService {
         return WalkResponse.create(walk, dogs, walkRequest.getGpsData());
     }
 
+    @Transactional(readOnly = true)
+    public List<WalkResponse> findWalksByYearAndMonth(String yearMonth, User user) {
+        YearMonth ym = YearMonth.parse(yearMonth);
+        LocalDateTime startDayOfMonth = ym.atDay(1).atStartOfDay();
+        LocalDateTime endDayOfMonth = ym.atEndOfMonth().atTime(23, 59, 59);
+
+        List<Walk> walks = walkRepository.findAllByUserAndStartedAtBetween(user, startDayOfMonth, endDayOfMonth);
+
+        if (walks.isEmpty()) {
+            throw new WalkNotFoundException();
+        }
+
+        return walks.stream().map(walk -> { // walk는 walks 리스트에 있는 데이터 하나이고 해당 리스트 반복해서 walkResponse의 List를 만듦
+            List<Dog> dogs = walkDogRepository.findAllByWalk(walk)
+                    .stream()
+                    .map(WalkDog::getDog)
+                    .toList();
+
+            List<WalkRequest.GpsPoint> gpsPoints = gpsDeserializate(walk);
+
+            return WalkResponse.create(walk, dogs, gpsPoints);
+        }).collect(Collectors.toList()); // 이거로 리스트화
+    }
 
     @Transactional(readOnly = true)
     public List<WalkResponse> findWalksByDate(LocalDate date, User user) {
@@ -104,6 +128,7 @@ public class WalkService {
 
         return WalkResponse.create(walk, dogs, gpsPoints);
     }
+
 
     @Transactional(readOnly = true)
     public List<WalkSimpleResponse> getWalksByDogId(Long id, User user) {
