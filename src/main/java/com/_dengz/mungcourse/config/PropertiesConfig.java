@@ -1,5 +1,6 @@
 package com._dengz.mungcourse.config;
 
+import com._dengz.mungcourse.properties.AppleOAuth2Properties;
 import com._dengz.mungcourse.properties.GoogleOAuth2Properties;
 import com._dengz.mungcourse.properties.JwtProperties;
 import com._dengz.mungcourse.properties.SecurityProperties;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties({
         JwtProperties.class,
         GoogleOAuth2Properties.class,
+        AppleOAuth2Properties.class,
         SecurityProperties.class
 })
 public class PropertiesConfig {
