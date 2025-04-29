@@ -1,31 +1,37 @@
 package com._dengz.mungcourse.service;
 
-import com._dengz.mungcourse.dto.walk.WalkDateResponse;
-import com._dengz.mungcourse.dto.walk.WalkRequest;
-import com._dengz.mungcourse.dto.walk.WalkResponse;
-import com._dengz.mungcourse.dto.walk.WalkSimpleResponse;
+import com._dengz.mungcourse.dto.ai.LatAndLng;
+import com._dengz.mungcourse.dto.ai.WalkRecommendAiRequest;
+import com._dengz.mungcourse.dto.walk.*;
 import com._dengz.mungcourse.entity.Dog;
 import com._dengz.mungcourse.entity.User;
 import com._dengz.mungcourse.entity.Walk;
 import com._dengz.mungcourse.entity.WalkDog;
-import com._dengz.mungcourse.exception.GpsSerializationFailedException;
-import com._dengz.mungcourse.exception.GpsDeserializationFailedException;
+import com._dengz.mungcourse.exception.*;
+import com._dengz.mungcourse.properties.AiServerProperties;
 import com._dengz.mungcourse.repository.DogRepository;
-import com._dengz.mungcourse.exception.WalkNotFoundException;
-import com._dengz.mungcourse.exception.WalkAccessForbiddenException;
 import com._dengz.mungcourse.repository.WalkDogRepository;
 import com._dengz.mungcourse.repository.WalkRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,11 +39,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WalkService {
 
-    private final DogRepository dogRepository;
     private final WalkRepository walkRepository;
     private final WalkDogRepository walkDogRepository;
     private final ObjectMapper objectMapper;
     private final DogService dogService;
+    private final AiServerProperties aiServerProperties;
 
     @Transactional
     public WalkResponse saveWalk(WalkRequest walkRequest, User user) {
@@ -141,6 +147,60 @@ public class WalkService {
         Walk walk = findWalkAndCheckById(id, user);
 
         walkRepository.delete(walk); // cascade에 의해 WalkDog도 함께 삭제됨
+    }
+
+    public String searchRecommendWalks(Double currentLat, Double currentLng, byte[] pklFile,
+                                                      WalkRecommendRequest walkRecommendRequest) {
+
+        LatAndLng startLocation = LatAndLng.create(currentLat, currentLng);
+
+        List<LatAndLng> waypoints = (walkRecommendRequest != null && walkRecommendRequest.getDogPlaces() != null)
+                ? walkRecommendRequest.getDogPlaces().stream()
+                .map(dogPlace -> LatAndLng.create(dogPlace.getLat(), dogPlace.getLng()))
+                .collect(Collectors.toList()) // 경유지가 있으면 해당 장소들 list로 변환해서 wayPoints에 저장
+                : Collections.emptyList(); // 경유지가 없으면 빈 리스트
+
+
+        WalkRecommendAiRequest walkRecommendAiRequest = WalkRecommendAiRequest.create(startLocation, waypoints);
+
+        // JSON 문자열 생성 (내용은 JSON 포맷이지만 multipart의 텍스트 파트로 넣음)
+        String jsonString;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonString = objectMapper.writeValueAsString(walkRecommendAiRequest);
+        } catch (JsonProcessingException e) {
+            throw new AiRequestSerializationFailedException();
+        }
+
+
+        // pkl 바이너리 값을 pkl 파일로 변환 (이름은 model.pkl)
+        ByteArrayResource pklResource = new ByteArrayResource(pklFile) {
+            @Override
+            public String getFilename() {
+                return "model.pkl";
+            }
+        };
+
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("model_file", pklResource);
+        body.add("json_str", jsonString); // 그냥 문자열로 추가하면 OK
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                aiServerProperties.getServer().getRequestUrl(),
+                requestEntity,
+                String.class
+        );
+
+        // 6. 응답 처리
+        return response.getBody();
     }
 
     public Walk findWalkAndCheckById(Long id, User user) {

@@ -25,7 +25,7 @@ public enum GlobalErrorCode {
     MAIN_DOG_NOT_FOUND(404, "메인 강아지가 존재하지 않습니다."),
     WALK_NOT_FOUND(404, "해당 산책 데이터가 존재하지 않습니다."),
     GOOGLE_PUBLIC_KEY_NOT_FOUND(404, "kid가 일치하는 구글의 공개키를 찾을 수 없습니다."),
-    GPS_SERIALIZATION_FAILED(500, "GPS 데이터를 JSON으로 변환하는데 실패했습니다."),
+    AI_REQUEST_SERIALIZATION_FAILED(500, "산책로 추천 요청 데이터를 변환하는데 실패했습니다."),
     GPS_DESERIALIZATION_FAILED(500, "JSON 형식을 GPS 데이터로 변환하는데 실패했습니다.");
 
     private final int status;

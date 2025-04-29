@@ -13,7 +13,11 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
@@ -168,12 +172,24 @@ public class GoogleOAuth2Service implements OAuth2Service{
 
 
     public User createUser(UserInfoDto userInfo) {
+        byte[] fileBytes = null;
+        Path pklFilePath = Paths.get("src/main/resources/pkl/initial_model.pkl");
+
+        try {
+            // 파일을 byte[]로 읽기
+            fileBytes = Files.readAllBytes(pklFilePath);
+        } catch (IOException e) {
+            throw new RuntimeException("파일을 읽는 중 오류가 발생했습니다. 관리자에게 문의해주세요.");
+        }
+
+        // User 객체 생성
         User newUser = User.create(
                 userInfo.getSub(),
                 userInfo.getEmail(),
                 userInfo.getName(),
                 userInfo.getUserImgUrl(),
-                userInfo.getProvider()
+                userInfo.getProvider(),
+                fileBytes
         );
 
         return userRepository.save(newUser);

@@ -18,7 +18,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.RSAPublicKeySpec;
@@ -169,12 +173,24 @@ public class AppleOAuth2Service implements OAuth2Service{
 
 
     public User createUser(UserInfoDto userInfo) {
+        byte[] fileBytes = null;
+        Path pklFilePath = Paths.get("src/main/resources/pkl/user_file.pkl");
+
+        try {
+            // 파일을 byte[]로 읽기
+            fileBytes = Files.readAllBytes(pklFilePath);
+        } catch (IOException e) {
+            throw new RuntimeException("파일을 읽는 중 오류가 발생했습니다. 관리자에게 문의해주세요.");
+        }
+
+        // User 객체 생성
         User newUser = User.create(
                 userInfo.getSub(),
                 userInfo.getEmail(),
                 userInfo.getName(),
                 userInfo.getUserImgUrl(),
-                userInfo.getProvider()
+                userInfo.getProvider(),
+                fileBytes
         );
 
         return userRepository.save(newUser);
