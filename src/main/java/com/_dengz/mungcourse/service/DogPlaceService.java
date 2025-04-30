@@ -2,10 +2,21 @@ package com._dengz.mungcourse.service;
 
 import com._dengz.mungcourse.dto.dogPlace.DogPlaceListResponse;
 import com._dengz.mungcourse.entity.DogPlace;
+import com._dengz.mungcourse.exception.DogPlaceNotFoundException;
 import com._dengz.mungcourse.repository.DogPlaceRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,7 +28,7 @@ public class DogPlaceService {
     private final DogPlaceRepository dogPlaceRepository;
 
     public List<DogPlaceListResponse> searchNearDogPlaceList(double currentLat, double currentLng) {
-        double radiusMeters = 2000.0; // 현재 위치에서 2km를 기준으로 검색함
+        double radiusMeters = 5000.0; // 현재 위치에서 2km를 기준으로 검색함
 
         double latRange = radiusMeters / 111000.0; // 위도 1도 ≈ 111km = 111000m
         double lngRange = radiusMeters / (111000.0 * Math.cos(Math.toRadians(currentLat)));
@@ -38,6 +49,7 @@ public class DogPlaceService {
                 .sorted(Comparator.comparingDouble(DogPlaceListResponse::getDistance)) // 가까운 순서로 정렬
                 .collect(Collectors.toList());
     }
+
 
     public static double haversine(double lat1, double lon1, double lat2, double lon2) {
         final double R = 6371000; // 지구 반지름 (단위: meter)
