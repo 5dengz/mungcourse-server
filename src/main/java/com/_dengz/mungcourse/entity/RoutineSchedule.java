@@ -19,7 +19,10 @@ public class RoutineSchedule {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private DayOfWeek dayOfWeek;
+    private RepeatDay repeatDay;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "routine_id", nullable = false)
@@ -27,4 +30,13 @@ public class RoutineSchedule {
 
     @OneToMany(mappedBy = "routineSchedule")
     private List<RoutineCheck> checks;
+
+    private RoutineSchedule(RepeatDay dayOfWeek, Routine routine) {
+        this.repeatDay = dayOfWeek;
+        this.routine = routine;
+    }
+
+    public static RoutineSchedule create(RepeatDay dayOfWeek, Routine routine) {
+        return new RoutineSchedule(dayOfWeek, routine);
+    }
 }

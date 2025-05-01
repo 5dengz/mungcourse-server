@@ -7,11 +7,16 @@ import com._dengz.mungcourse.exception.IdTokenInvalidException;
 import com._dengz.mungcourse.exception.IdTokenNotFoundException;
 import com._dengz.mungcourse.exception.PublicKeyNotFoundException;
 import com._dengz.mungcourse.jwt.TokenProvider;
-import com._dengz.mungcourse.properties.GoogleOAuth2Properties;
+import com._dengz.mungcourse.properties.AppleOAuth2Properties;
 import com._dengz.mungcourse.repository.UserRepository;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.interfaces.JWTVerifier;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -19,63 +24,57 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.security.interfaces.RSAPublicKey;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.interfaces.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import org.springframework.web.client.RestTemplate;
-
 
 @Service
 @RequiredArgsConstructor
-public class GoogleOAuth2Service implements OAuth2Service{
+public class AppleOAuth2Service implements OAuth2Service{
 
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
-    private final GoogleOAuth2Properties googleOAuth2Properties;
+    private final AppleOAuth2Properties appleOAuth2Properties;
 
+    // 소셜 로그인 인증 후 로그인 및 회원가입 후 로그인
     @Override
     public OAuth2Response authenticate(String idToken) {
         if (!validateIdToken(idToken)) {
             throw new IdTokenInvalidException();
         }
 
-        // Google에서 사용자 정보를 추출
         UserInfoDto userInfo = extractUserInfo(idToken);
-        User user;
         boolean isNewUser = false;
+        User user;
 
-        // 유저가 원래 없던 케이스 (회원가입 후 로그인)
         if (!isUserExist(userInfo.getSub())) {
             user = createUser(userInfo);
             isNewUser = true;
-        }
-        // 원래 존재하는 유저 (로그인)
-        else {
+        } else {
             user = updateUser(userInfo.getSub(), userInfo);
         }
 
-
-        return new OAuth2Response(tokenProvider.createAccessAndRefreshTokenResponse(user.getSub()),
-                UserInfoDto.create(user), isNewUser);
+        return new OAuth2Response(
+                tokenProvider.createAccessAndRefreshTokenResponse(user.getSub()),
+                UserInfoDto.create(user),
+                isNewUser
+        );
     }
+
 
     @Override
     public boolean validateIdToken(String idToken) {
 
         // idToken 값이 비어져있으면 에러 처리
         if (idToken.isEmpty())
-                throw new IdTokenNotFoundException();
+            throw new IdTokenNotFoundException();
 
         // Google의 공개키를 사용하여 id_token 검증
         try {
             // Google의 공개키 가져오기
-            Map<String, Object> publicKeys = fetchGooglePublicKeys();
+            Map<String, Object> publicKeys = fetchApplePublicKeys();
 
             // idToken을 decode하여 header에서 kid 가져오기
             DecodedJWT decodedJWT = JWT.decode(idToken);
@@ -91,8 +90,8 @@ public class GoogleOAuth2Service implements OAuth2Service{
 
             // 서명 검증
             JWTVerifier verifier = JWT.require(Algorithm.RSA256(publicKey, null))
-                    .withAudience(googleOAuth2Properties.getClientId()) // 클라이언트 ID 매칭
-                    .withIssuer(googleOAuth2Properties.getIssuer())
+                    .withAudience(appleOAuth2Properties.getClientId()) // 클라이언트 ID 매칭
+                    .withIssuer(appleOAuth2Properties.getIssuer())
                     .build();
 
             // idToken 검증
@@ -107,10 +106,10 @@ public class GoogleOAuth2Service implements OAuth2Service{
         }
     }
 
-    public Map<String, Object> fetchGooglePublicKeys() {
-        // Google 공개키 API에서 키 목록 가져오기
+    public Map<String, Object> fetchApplePublicKeys() {
+        // Apple 공개키 API에서 키 목록 가져오기
         RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.getForObject(googleOAuth2Properties.getPublicKeysUrl(), Map.class);  // Map.class로 수정
+        return restTemplate.getForObject(appleOAuth2Properties.getPublicKeysUrl(), Map.class);  // Map.class로 수정
     }
 
     private RSAPublicKey findPublicKey(Map<String, Object> publicKeys, String kid, String alg) {
@@ -144,6 +143,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
         return null;
     }
 
+    // idToken에서 사용자 정보 추출
     @Override
     public UserInfoDto extractUserInfo(String idToken) {
         try {
@@ -153,9 +153,9 @@ public class GoogleOAuth2Service implements OAuth2Service{
             // 사용자 정보 추출 (예: sub, email, name, picture 등)
             String sub = decodedJWT.getSubject();  // 사용자 고유 ID
             String email = decodedJWT.getClaim("email").asString();  // 이메일
-            String name = decodedJWT.getClaim("name").asString();  // 이름
-            String picture = decodedJWT.getClaim("picture").asString();  // 프로필 사진 URL
-            String provider = "google";
+            String name = "";  // 이름
+            String picture = null;  // 프로필 사진 URL
+            String provider = "apple";
 
             // UserInfoDto 객체 생성하여 반환
             return new UserInfoDto(sub, email, name, provider, picture);
@@ -165,6 +165,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
         }
     }
 
+
     // 이미 존재하는 유저인지 확인용
     public boolean isUserExist(String sub) {
         return userRepository.findBySub(sub).isPresent();
@@ -173,7 +174,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
 
     public User createUser(UserInfoDto userInfo) {
         byte[] fileBytes = null;
-        Path pklFilePath = Paths.get("src/main/resources/pkl/initial_model.pkl");
+        Path pklFilePath = Paths.get("src/main/resources/pkl/user_file.pkl");
 
         try {
             // 파일을 byte[]로 읽기
@@ -198,9 +199,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
     public User updateUser(String sub, UserInfoDto userInfo) {
         User existingUser = userRepository.findBySub(sub).orElse(null);
 
-        existingUser.setEmail(userInfo.getEmail());  // 이메일 업데이트
-        existingUser.setName(userInfo.getName());    // 이름 업데이트
-        existingUser.setUserImgUrl(userInfo.getUserImgUrl());  // 프로필 사진 업데이트
+        existingUser.setEmail(userInfo.getEmail());  // 이메일 업데이트-
         existingUser.setProvider(userInfo.getProvider());  // 인증 제공자 업데이트
 
         // 3. 변경된 사용자 정보 저장 (변경 사항이 있을 때만)
@@ -213,6 +212,3 @@ public class GoogleOAuth2Service implements OAuth2Service{
             return existingUser; // 바뀐거 없으면 그냥 그대로 return
     }
 }
-
-// 1. createUser, updateUser로 분리한다
-// 2. createUser 해야하는 상황이면 isNewUser = true, updateUser 해야하는 상황이면 isNewUser = false

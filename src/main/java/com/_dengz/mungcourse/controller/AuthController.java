@@ -3,12 +3,14 @@ package com._dengz.mungcourse.controller;
 import com._dengz.mungcourse.dto.UserInfoDto;
 import com._dengz.mungcourse.dto.auth.AccessTokenAndRefreshTokenResponse;
 import com._dengz.mungcourse.dto.auth.IdTokenRequest;
+import com._dengz.mungcourse.dto.auth.IdentityTokenRequest;
 import com._dengz.mungcourse.dto.auth.OAuth2Response;
 import com._dengz.mungcourse.dto.common.BaseResponse;
 import com._dengz.mungcourse.dto.common.DataResponse;
 import com._dengz.mungcourse.jwt.TokenProvider;
 import com._dengz.mungcourse.jwt.UserPrincipal;
 import com._dengz.mungcourse.repository.UserRepository;
+import com._dengz.mungcourse.service.AppleOAuth2Service;
 import com._dengz.mungcourse.service.AuthService;
 import com._dengz.mungcourse.service.GoogleOAuth2Service;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,12 +31,19 @@ public class AuthController {
     private final AuthService authService;
     private final TokenProvider tokenProvider;
     private final GoogleOAuth2Service googleOAuth2Service;
+    private final AppleOAuth2Service appleOAuth2Service;
     private final UserRepository userRepository;
 
     @PostMapping("/google/login")
     @Operation(summary = "구글 OAuth 로그인 및 회원가입", description = "모바일에서 구글 소셜 로그인으로 회원가입 및 바로 로그인 합니다")
     public DataResponse<OAuth2Response> googleOAuthLoginOrRegister(@RequestBody IdTokenRequest idTokenRequest) {
         return DataResponse.ok(googleOAuth2Service.authenticate(idTokenRequest.getIdToken()));
+    }
+
+    @PostMapping("/apple/login")
+    @Operation(summary = "애플 OAuth 로그인 및 회원가입", description = "모바일에서 애플 소셜 로그인으로 회원가입 및 바로 로그인 합니다")
+    public DataResponse<OAuth2Response> appleOAuthLoginOrRegister(@RequestBody IdentityTokenRequest identityTokenRequest) {
+        return DataResponse.ok(appleOAuth2Service.authenticate(identityTokenRequest.getIdentityToken()));
     }
 
     @PostMapping("/refresh")

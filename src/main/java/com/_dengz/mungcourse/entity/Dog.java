@@ -72,14 +72,14 @@ public class Dog {
         return new Dog(name, gender, birthDate, breed, weight, postedAt, hasArthritis, neutered, dogImgUrl, isMain, user);
     }
 
-    public void updateDogInfo(DogUpdateRequest req) {
-        if (req.getName() != null) this.name = req.getName();
-        if (req.getGender() != null) this.gender = req.getGender();
-        if (req.getBreed() != null) this.breed = req.getBreed();
-        if (req.getBirthDate() != null) this.birthDate = req.getBirthDate();
-        if (req.getWeight() != null) this.weight = req.getWeight();
-        if (req.getHasArthritis() != null) this.hasArthritis = req.getHasArthritis();
-        if (req.getNeutered() != null) this.neutered = req.getNeutered();
-        if (req.getDogImgUrl() != null) this.dogImgUrl = req.getDogImgUrl();
+    public void updateDogInfo(DogUpdateRequest dogUpdateRequest) {
+        if (dogUpdateRequest.getName() != null) this.name = dogUpdateRequest.getName();
+        if (dogUpdateRequest.getGender() != null) this.gender = dogUpdateRequest.getGender();
+        if (dogUpdateRequest.getBreed() != null) this.breed = dogUpdateRequest.getBreed();
+        if (dogUpdateRequest.getBirthDate() != null) this.birthDate = dogUpdateRequest.getBirthDate();
+        if (dogUpdateRequest.getWeight() != null) this.weight = dogUpdateRequest.getWeight();
+        if (dogUpdateRequest.getHasArthritis() != null) this.hasArthritis = dogUpdateRequest.getHasArthritis();
+        if (dogUpdateRequest.getNeutered() != null) this.neutered = dogUpdateRequest.getNeutered();
+        if (dogUpdateRequest.getDogImgUrl() != null) this.dogImgUrl = dogUpdateRequest.getDogImgUrl();
     }
 }

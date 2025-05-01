@@ -21,10 +21,10 @@ public class User {
     @Column(nullable = false)
     private String sub;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String name;
 
     @Column(nullable = false)
@@ -32,6 +32,10 @@ public class User {
 
     @Column(nullable = true)
     private String userImgUrl;
+
+    @Lob
+    @Column(name = "pkl_file", columnDefinition = "MEDIUMBLOB")  // MEDIUMBLOB으로 설정
+    private byte[] pklFile;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Dog> dogs;
@@ -42,20 +46,21 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Routine> routines;
 
-    private User(String sub, String email, String name, String userImgUrl, String provider)
+    private User(String sub, String email, String name, String userImgUrl, String provider, byte[] pklFile)
     {
         this.sub = sub;
         this.email = email;
         this.name = name;
         this.userImgUrl = userImgUrl;
         this.provider = provider;
+        this.pklFile = pklFile;
     }
 
-    public static User create(String sub, String email, String name, String userImgUrl, String provider) {
-        return new User(sub, email, name, userImgUrl, provider);
+    public static User create(String sub, String email, String name, String userImgUrl, String provider, byte[] pklFile) {
+        return new User(sub, email, name, userImgUrl, provider, pklFile);
     }
 
-    public static User create(String sub, String email, String name, String provider) {
-        return new User(sub, email, name, null, provider);
+    public static User create(String sub, String email, String name, String provider, byte[] pklFile) {
+        return new User(sub, email, name, null, provider, pklFile);
     }
 }
