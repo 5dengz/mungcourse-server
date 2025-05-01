@@ -3,12 +3,10 @@ package com._dengz.mungcourse.service;
 import com._dengz.mungcourse.dto.ai.LatAndLng;
 import com._dengz.mungcourse.dto.ai.WalkRecommendAiRequest;
 import com._dengz.mungcourse.dto.walk.*;
-import com._dengz.mungcourse.entity.Dog;
-import com._dengz.mungcourse.entity.User;
-import com._dengz.mungcourse.entity.Walk;
-import com._dengz.mungcourse.entity.WalkDog;
+import com._dengz.mungcourse.entity.*;
 import com._dengz.mungcourse.exception.*;
 import com._dengz.mungcourse.properties.AiServerProperties;
+import com._dengz.mungcourse.repository.DogPlaceRepository;
 import com._dengz.mungcourse.repository.DogRepository;
 import com._dengz.mungcourse.repository.WalkDogRepository;
 import com._dengz.mungcourse.repository.WalkRepository;
@@ -44,6 +42,7 @@ public class WalkService {
     private final ObjectMapper objectMapper;
     private final DogService dogService;
     private final AiServerProperties aiServerProperties;
+    private final DogPlaceRepository dogPlaceRepository;
 
     @Transactional
     public WalkResponse saveWalk(WalkRequest walkRequest, User user) {
@@ -149,16 +148,23 @@ public class WalkService {
         walkRepository.delete(walk); // cascade에 의해 WalkDog도 함께 삭제됨
     }
 
-    public String searchRecommendWalks(Double currentLat, Double currentLng, byte[] pklFile,
-                                                      WalkRecommendRequest walkRecommendRequest) {
+    public WalkRecommendResponse searchRecommendWalks(WalkRecommendRequest walkRecommendRequest, byte[] pklFile) {
 
-        LatAndLng startLocation = LatAndLng.create(currentLat, currentLng);
+        LatAndLng startLocation = LatAndLng.create(walkRecommendRequest.getCurrentLat(), walkRecommendRequest.getCurrentLng());
 
-        List<LatAndLng> waypoints = (walkRecommendRequest != null && walkRecommendRequest.getDogPlaces() != null)
-                ? walkRecommendRequest.getDogPlaces().stream()
-                .map(dogPlace -> LatAndLng.create(dogPlace.getLat(), dogPlace.getLng()))
-                .collect(Collectors.toList()) // 경유지가 있으면 해당 장소들 list로 변환해서 wayPoints에 저장
-                : Collections.emptyList(); // 경유지가 없으면 빈 리스트
+        List<LatAndLng> waypoints;
+
+        if (walkRecommendRequest.getDogPlaceIds() == null) {
+            waypoints = Collections.emptyList();
+        }
+
+        else {
+            List<DogPlace> dogPlaces = dogPlaceRepository.findAllById(walkRecommendRequest.getDogPlaceIds());
+
+            waypoints = dogPlaces.stream()
+                    .map(dogPlace -> LatAndLng.create(dogPlace.getLat(), dogPlace.getLng()))
+                    .collect(Collectors.toList()); // 경유지가 있으면 해당 장소들 list로 변환해서 wayPoints에 저장
+        }
 
 
         WalkRecommendAiRequest walkRecommendAiRequest = WalkRecommendAiRequest.create(startLocation, waypoints);
@@ -191,7 +197,6 @@ public class WalkService {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.postForEntity(
                 aiServerProperties.getServer().getRequestUrl(),
@@ -199,8 +204,20 @@ public class WalkService {
                 String.class
         );
 
-        // 6. 응답 처리
-        return response.getBody();
+        String escapedMessage = response.getBody(); // 혹은 response.getMessage()
+
+// Jackson 또는 String replace를 사용하여 이스케이프 제거
+        ObjectMapper objectMapper = new ObjectMapper();
+        String unescapedJson;
+        try {
+            unescapedJson = objectMapper.readValue(escapedMessage, String.class);
+        }
+        catch (JsonProcessingException e) {
+            throw new GpsDeserializationFailedException();
+        }
+
+        List<List<WalkRequest.GpsPoint>> gpsDataList = gpsDeserializate(unescapedJson); // 전체 JSON 응답 문자열
+        return WalkRecommendResponse.create(gpsDataList);
     }
 
     public Walk findWalkAndCheckById(Long id, User user) {
@@ -232,4 +249,21 @@ public class WalkService {
             throw new GpsDeserializationFailedException();
         }
     }
+
+    public List<List<WalkRequest.GpsPoint>> gpsDeserializate(String gpsDataListString) {
+        try {
+            List<List<WalkRequest.GpsPoint>> gpsPointsList = objectMapper.readValue(
+                    gpsDataListString,
+                    objectMapper.getTypeFactory().constructCollectionType(
+                            List.class,
+                            objectMapper.getTypeFactory().constructCollectionType(List.class, WalkRequest.GpsPoint.class)
+                    )
+            );
+            return gpsPointsList;
+        } catch (JsonProcessingException e) {
+            throw new GpsDeserializationFailedException();
+        }
+    }
+
+
 }

@@ -2,10 +2,7 @@ package com._dengz.mungcourse.controller;
 
 import com._dengz.mungcourse.dto.common.BaseResponse;
 import com._dengz.mungcourse.dto.common.DataResponse;
-import com._dengz.mungcourse.dto.walk.WalkDateResponse;
-import com._dengz.mungcourse.dto.walk.WalkRecommendRequest;
-import com._dengz.mungcourse.dto.walk.WalkRequest;
-import com._dengz.mungcourse.dto.walk.WalkResponse;
+import com._dengz.mungcourse.dto.walk.*;
 import com._dengz.mungcourse.entity.User;
 import com._dengz.mungcourse.exception.UserNotFoundException;
 import com._dengz.mungcourse.jwt.UserPrincipal;
@@ -63,10 +60,8 @@ public class WalkController {
 
     @PostMapping("/recommend")
     @Operation(summary = "AI 기반 산책로 추천", description = "사용자의 산책 기록에 기반하여 특정 산책로를 추천합니다.")
-    public DataResponse<String> findWalksRecommend(@RequestParam("currentLat") Double currentLat,
-                                                                 @RequestParam("currentLng") Double currentLng,
-                                                                 @AuthenticationPrincipal UserPrincipal principal,
-                                                                 @RequestBody(required = false) WalkRecommendRequest walkRecommendRequest) {
-        return DataResponse.ok(walkService.searchRecommendWalks(currentLat, currentLng, principal.getUser().getPklFile(), walkRecommendRequest));
+    public DataResponse<WalkRecommendResponse> findWalksRecommend(@RequestBody WalkRecommendRequest walkRecommendRequest,
+                                                                  @AuthenticationPrincipal UserPrincipal principal) {
+        return DataResponse.ok(walkService.searchRecommendWalks(walkRecommendRequest, principal.getUser().getPklFile()));
     }
 }
