@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.util.List;
 
 @Entity
+@Table(name = "routines") // SQL에서 예약어 충돌 방지
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -29,4 +30,14 @@ public class Routine {
 
     @OneToMany(mappedBy = "routine", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<RoutineSchedule> schedules;
+
+    private Routine(String name, String alarmTime, User user) {
+        this.name = name;
+        this.alarmTime = alarmTime;
+        this.user = user;
+    }
+
+    public static Routine create(String name, String alarmTime, User user) {
+        return new Routine(name, alarmTime, user);
+    }
 }

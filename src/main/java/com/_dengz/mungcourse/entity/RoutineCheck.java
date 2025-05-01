@@ -26,4 +26,13 @@ public class RoutineCheck {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "routine_schedule_id", nullable = false)
     private RoutineSchedule routineSchedule;
+
+    private RoutineCheck(LocalDate date, RoutineSchedule routineSchedule) {
+        this.date = date;
+        this.routineSchedule = routineSchedule;
+    }
+
+    public static RoutineCheck create(LocalDate date, RoutineSchedule routineSchedule) {
+        return new RoutineCheck(date, routineSchedule);
+    }
 }
