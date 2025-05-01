@@ -123,12 +123,12 @@ public class DogPlaceDevService {
 
             URL url = new URL(requestUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setInstanceFollowRedirects(false); // ✅ 자동 리다이렉트 방지
+            connection.setInstanceFollowRedirects(false); // 자동 리다이렉트 방지
             connection.connect();
 
             int status = connection.getResponseCode();
             if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM) {
-                // ✅ 302 or 301 응답 → Location 헤더에서 최종 이미지 URL 얻기
+                // 302 or 301 응답 → Location 헤더에서 최종 이미지 URL 얻기
                 return connection.getHeaderField("Location");
             } else {
                 throw new RuntimeException("Expected redirect but got HTTP " + status);

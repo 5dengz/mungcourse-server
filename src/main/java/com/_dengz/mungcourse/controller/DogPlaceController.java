@@ -26,9 +26,21 @@ public class DogPlaceController {
     private final DogPlaceService dogPlaceService;
 
     @GetMapping()
-    @Operation(summary = "현재 위치 기준 2km 반경 장소 검색", description = "클라이언트의 현재 위치에서 가까운 애견 동반 시설들을 검색합니다.")
+    @Operation(summary = "현재 위치 기준 2km 반경 장소 검색", description = "클라이언트의 현재 위치에서 가까운 애견 동반 시설들을 검색합니다, 카테고리를 기준으로 필터링 할 수도 있습니다.")
     public DataResponse<List<DogPlaceListResponse>> getDogPlacessByCurrentLatAndLng(@RequestParam("currentLat") Double currentLat,
-                                                                   @RequestParam("currentLng") Double currentLng) {
-        return DataResponse.ok(dogPlaceService.searchNearDogPlaceList(currentLat, currentLng));
+                                                                                    @RequestParam("currentLng") Double currentLng,
+                                                                                    @RequestParam(value = "category", required = false)
+                                                                                        String category) {
+        return DataResponse.ok(dogPlaceService.searchNearDogPlaceList(currentLat, currentLng, category));
     }
+
+    @GetMapping("/search")
+    @Operation(summary = "이름으로 장소 검색", description = "장소 이름으로 특정 애견 동반 시설을 검색합니다.")
+    public DataResponse<List<DogPlaceListResponse>> getDogPlacessByName(@RequestParam("currentLat") Double currentLat,
+                                                                        @RequestParam("currentLng") Double currentLng,
+                                                                        @RequestParam("placeName") String name) {
+        return DataResponse.ok(dogPlaceService.searchNearDogPlaceListByName(currentLat, currentLng, name));
+    }
+
+
 }
