@@ -1,5 +1,7 @@
 package com._dengz.mungcourse.entity;
 
+import com._dengz.mungcourse.dto.dog.request.DogUpdateRequest;
+import com._dengz.mungcourse.dto.routine.RoutineUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -39,5 +41,10 @@ public class Routine {
 
     public static Routine create(String name, String alarmTime, User user) {
         return new Routine(name, alarmTime, user);
+    }
+
+    public void updateRoutineInfo(RoutineUpdateRequest routineUpdateRequest) {
+        if (routineUpdateRequest.getName() != null) this.name = routineUpdateRequest.getName();
+        if (routineUpdateRequest.getAlarmTime() != null) this.alarmTime = routineUpdateRequest.getAlarmTime();
     }
 }

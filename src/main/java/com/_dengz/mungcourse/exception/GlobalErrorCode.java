@@ -24,6 +24,8 @@ public enum GlobalErrorCode {
     DOG_NOT_FOUND(404, "해당 강아지 정보가 존재하지 않습니다."),
     DOG_PLACE_NOT_FOUND(404, "해당 애견 동반 장소가 존재하지 않습니다."),
     MAIN_DOG_NOT_FOUND(404, "메인 강아지가 존재하지 않습니다."),
+    ROUTINE_NOT_FOUND(404, "해당 루틴이 존재하지 않습니다"),
+    ROUTINE_CHECK_NOT_FOUND(404, "해당 루틴 체크 데이터가 존재하지 않습니다"),
     WALK_NOT_FOUND(404, "해당 산책 데이터가 존재하지 않습니다."),
     GOOGLE_PUBLIC_KEY_NOT_FOUND(404, "kid가 일치하는 구글의 공개키를 찾을 수 없습니다."),
     AI_REQUEST_SERIALIZATION_FAILED(500, "산책로 추천 요청 데이터를 변환하는데 실패했습니다."),

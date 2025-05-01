@@ -21,6 +21,9 @@ public class RoutineSchedule {
     @Enumerated(EnumType.STRING)
     private RepeatDay repeatDay;
 
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "routine_id", nullable = false)
     private Routine routine;
