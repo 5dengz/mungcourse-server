@@ -11,6 +11,7 @@ import com._dengz.mungcourse.repository.DogRepository;
 import com._dengz.mungcourse.repository.WalkDogRepository;
 import com._dengz.mungcourse.repository.WalkRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
@@ -148,7 +149,7 @@ public class WalkService {
         walkRepository.delete(walk); // cascade에 의해 WalkDog도 함께 삭제됨
     }
 
-    public WalkRecommendResponse searchRecommendWalks(WalkRecommendRequest walkRecommendRequest, byte[] pklFile) {
+    public List<WalkRecommendResponse> searchRecommendWalks(WalkRecommendRequest walkRecommendRequest, byte[] pklFile) {
 
         LatAndLng startLocation = LatAndLng.create(walkRecommendRequest.getCurrentLat(), walkRecommendRequest.getCurrentLng());
 
@@ -197,6 +198,8 @@ public class WalkService {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
+
+
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.postForEntity(
                 aiServerProperties.getServer().getRequestUrl(),
@@ -216,8 +219,7 @@ public class WalkService {
             throw new GpsDeserializationFailedException();
         }
 
-        List<List<WalkRequest.GpsPoint>> gpsDataList = gpsDeserializate(unescapedJson); // 전체 JSON 응답 문자열
-        return WalkRecommendResponse.create(gpsDataList);
+        return gpsDeserializate(unescapedJson); // 전체 JSON 응답 문자열
     }
 
     public Walk findWalkAndCheckById(Long id, User user) {
@@ -250,16 +252,12 @@ public class WalkService {
         }
     }
 
-    public List<List<WalkRequest.GpsPoint>> gpsDeserializate(String gpsDataListString) {
+    public List<WalkRecommendResponse> gpsDeserializate(String walkRecommendResponseListString) {
         try {
-            List<List<WalkRequest.GpsPoint>> gpsPointsList = objectMapper.readValue(
-                    gpsDataListString,
-                    objectMapper.getTypeFactory().constructCollectionType(
-                            List.class,
-                            objectMapper.getTypeFactory().constructCollectionType(List.class, WalkRequest.GpsPoint.class)
-                    )
+            return objectMapper.readValue(
+                    walkRecommendResponseListString,
+                    new TypeReference<List<WalkRecommendResponse>>() {}
             );
-            return gpsPointsList;
         } catch (JsonProcessingException e) {
             throw new GpsDeserializationFailedException();
         }

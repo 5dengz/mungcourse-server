@@ -60,7 +60,7 @@ public class WalkController {
 
     @PostMapping("/recommend")
     @Operation(summary = "AI 기반 산책로 추천", description = "사용자의 산책 기록에 기반하여 특정 산책로를 추천합니다.")
-    public DataResponse<WalkRecommendResponse> findWalksRecommend(@RequestBody WalkRecommendRequest walkRecommendRequest,
+    public DataResponse<List<WalkRecommendResponse>> findWalksRecommend(@RequestBody WalkRecommendRequest walkRecommendRequest,
                                                                   @AuthenticationPrincipal UserPrincipal principal) {
         return DataResponse.ok(walkService.searchRecommendWalks(walkRecommendRequest, principal.getUser().getPklFile()));
     }
