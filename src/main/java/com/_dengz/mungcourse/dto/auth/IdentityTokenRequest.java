@@ -5,4 +5,6 @@ import lombok.Getter;
 @Getter
 public class IdentityTokenRequest {
     private String identityToken;
+
+    private String nonce;
 }

@@ -33,13 +33,13 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
-public class GoogleOAuth2Service implements OAuth2Service{
+public class GoogleOAuth2Service{
 
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final GoogleOAuth2Properties googleOAuth2Properties;
 
-    @Override
+
     public OAuth2Response authenticate(String idToken) {
         if (!validateIdToken(idToken)) {
             throw new IdTokenInvalidException();
@@ -65,7 +65,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
                 UserInfoDto.create(user), isNewUser);
     }
 
-    @Override
+
     public boolean validateIdToken(String idToken) {
 
         // idToken 값이 비어져있으면 에러 처리
@@ -144,7 +144,7 @@ public class GoogleOAuth2Service implements OAuth2Service{
         return null;
     }
 
-    @Override
+
     public UserInfoDto extractUserInfo(String idToken) {
         try {
             // id_token을 디코딩하여 Payload에 접근
