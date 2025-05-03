@@ -190,7 +190,6 @@ public class AppleOAuth2Service {
         }
     }
 
-
     // 이미 존재하는 유저인지 확인용
     public boolean isUserExist(String sub) {
         return userRepository.findBySub(sub).isPresent();
@@ -199,7 +198,7 @@ public class AppleOAuth2Service {
 
     public User createUser(UserInfoDto userInfo) {
         byte[] fileBytes = null;
-        Path pklFilePath = Paths.get("src/main/resources/pkl/user_file.pkl");
+        Path pklFilePath = Paths.get("src/main/resources/pkl/initial_model.pkl");
 
         try {
             // 파일을 byte[]로 읽기
