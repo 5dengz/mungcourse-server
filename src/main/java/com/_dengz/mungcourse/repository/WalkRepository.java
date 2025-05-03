@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface WalkRepository extends JpaRepository<Walk, Long> {
     List<Walk> findAllByUserAndStartedAtBetween(User user, LocalDateTime start, LocalDateTime end);
+    List<Walk> findByUserId(Long id);
 }

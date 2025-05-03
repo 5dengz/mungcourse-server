@@ -17,7 +17,7 @@ public class DogPlaceService {
     private final DogPlaceRepository dogPlaceRepository;
 
     public List<DogPlaceListResponse> searchNearDogPlaceList(double currentLat, double currentLng, String category) {
-        double radiusMeters = 5000.0; // 현재 위치에서 5km를 기준으로 검색함
+        double radiusMeters = 2000.0; // 현재 위치에서 5km를 기준으로 검색함
 
         double latRange = radiusMeters / 111000.0; // 위도 1도 ≈ 111km = 111000m
         double lngRange = radiusMeters / (111000.0 * Math.cos(Math.toRadians(currentLat)));
@@ -41,7 +41,7 @@ public class DogPlaceService {
     }
 
     public List<DogPlaceListResponse> searchNearDogPlaceListByName(double currentLat, double currentLng, String name) {
-        double radiusMeters = 5000.0; // 현재 위치에서 5km를 기준으로 검색함
+        double radiusMeters = 2000.0; // 현재 위치에서 5km를 기준으로 검색함
 
         double latRange = radiusMeters / 111000.0; // 위도 1도 ≈ 111km = 111000m
         double lngRange = radiusMeters / (111000.0 * Math.cos(Math.toRadians(currentLat)));
