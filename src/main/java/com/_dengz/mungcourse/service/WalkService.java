@@ -197,7 +197,7 @@ public class WalkService {
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.postForEntity(
-                aiServerProperties.getServer().getRequestUrl(),
+                aiServerProperties.getServer().getRequestUrl().getRecommend(),
                 requestEntity,
                 String.class
         );
@@ -239,7 +239,7 @@ public class WalkService {
         };
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("model_file", pklResource);
+        body.add("model", pklResource);
         body.add("json_str", jsonString); // 그냥 문자열로 추가하면 OK
 
         HttpHeaders headers = new HttpHeaders();
@@ -252,7 +252,7 @@ public class WalkService {
 
         // 5. 응답을 byte[]로 받기
         ResponseEntity<byte[]> response = restTemplate.exchange(
-                aiServerProperties.getServer().getRequestUrl(),
+                aiServerProperties.getServer().getRequestUrl().getTrain(),
                 HttpMethod.POST,
                 requestEntity,
                 byte[].class

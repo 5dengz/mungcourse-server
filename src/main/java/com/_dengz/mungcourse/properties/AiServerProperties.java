@@ -9,9 +9,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "ai")
 public class AiServerProperties {
     private final Server server;
+
     @Getter
     @RequiredArgsConstructor
     public static class Server {
-        private final String requestUrl;
+        private final RequestUrl requestUrl;
+
+        @Getter
+        @RequiredArgsConstructor
+        public static class RequestUrl {
+            private final String recommend;
+            private final String train;
+        }
     }
 }
