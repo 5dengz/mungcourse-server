@@ -19,7 +19,7 @@ public class WalkRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endedAt;
 
-    private Integer routeRating;
+    private Float routeRating;
 
     private List<Long> dogIds;
     private List<GpsPoint> gpsData;

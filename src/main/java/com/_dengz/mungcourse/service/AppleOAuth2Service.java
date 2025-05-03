@@ -3,9 +3,7 @@ package com._dengz.mungcourse.service;
 import com._dengz.mungcourse.dto.UserInfoDto;
 import com._dengz.mungcourse.dto.auth.OAuth2Response;
 import com._dengz.mungcourse.entity.User;
-import com._dengz.mungcourse.exception.IdTokenInvalidException;
-import com._dengz.mungcourse.exception.IdTokenNotFoundException;
-import com._dengz.mungcourse.exception.PublicKeyNotFoundException;
+import com._dengz.mungcourse.exception.*;
 import com._dengz.mungcourse.jwt.TokenProvider;
 import com._dengz.mungcourse.properties.AppleOAuth2Properties;
 import com._dengz.mungcourse.repository.UserRepository;
@@ -20,10 +18,13 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
@@ -32,20 +33,19 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class AppleOAuth2Service implements OAuth2Service{
+public class AppleOAuth2Service {
 
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final AppleOAuth2Properties appleOAuth2Properties;
 
     // 소셜 로그인 인증 후 로그인 및 회원가입 후 로그인
-    @Override
-    public OAuth2Response authenticate(String idToken) {
-        if (!validateIdToken(idToken)) {
-            throw new IdTokenInvalidException();
+    public OAuth2Response authenticate(String identityToken, String nonce) {
+        if (!validateIdToken(identityToken, nonce)) {
+            throw new IdentityTokenInvalidException();
         }
 
-        UserInfoDto userInfo = extractUserInfo(idToken);
+        UserInfoDto userInfo = extractUserInfo(identityToken);
         boolean isNewUser = false;
         User user;
 
@@ -64,12 +64,10 @@ public class AppleOAuth2Service implements OAuth2Service{
     }
 
 
-    @Override
-    public boolean validateIdToken(String idToken) {
+    public boolean validateIdToken(String identityToken, String clientNonce) {
 
-        // idToken 값이 비어져있으면 에러 처리
-        if (idToken.isEmpty())
-            throw new IdTokenNotFoundException();
+        if (identityToken.isEmpty())
+            throw new IdentityTokenNotFoundException();
 
         // Google의 공개키를 사용하여 id_token 검증
         try {
@@ -77,7 +75,7 @@ public class AppleOAuth2Service implements OAuth2Service{
             Map<String, Object> publicKeys = fetchApplePublicKeys();
 
             // idToken을 decode하여 header에서 kid 가져오기
-            DecodedJWT decodedJWT = JWT.decode(idToken);
+            DecodedJWT decodedJWT = JWT.decode(identityToken);
             String kid = decodedJWT.getHeaderClaim("kid").asString();
             String alg = decodedJWT.getAlgorithm();
 
@@ -95,9 +93,19 @@ public class AppleOAuth2Service implements OAuth2Service{
                     .build();
 
             // idToken 검증
-            verifier.verify(idToken);
+            verifier.verify(identityToken);
 
-            // 토큰이 유효하다면 true 반환
+            DecodedJWT verifiedJWT = verifier.verify(identityToken); // 검증된 JWT
+
+            // 5. 서버에서 nonce 해싱 후 비교
+            String tokenNonce = verifiedJWT.getClaim("nonce").asString();
+            String hashedNonce = sha256(clientNonce); // SHA256 해시 함수 필요
+
+            if (!hashedNonce.equals(tokenNonce)) {
+                throw new NonceInvalidException();
+            }
+
+            // 유효하다면 true 반환
             return true;
         } catch (JWTVerificationException e) {
             // 예외 발생 시 false 반환
@@ -143,8 +151,25 @@ public class AppleOAuth2Service implements OAuth2Service{
         return null;
     }
 
+    public String sha256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not found", e);
+        }
+    }
+
+
     // idToken에서 사용자 정보 추출
-    @Override
     public UserInfoDto extractUserInfo(String idToken) {
         try {
             // id_token을 디코딩하여 Payload에 접근

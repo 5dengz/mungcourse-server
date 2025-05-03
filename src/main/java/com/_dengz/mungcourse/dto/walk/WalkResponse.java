@@ -20,13 +20,13 @@ public class WalkResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endedAt;
 
-    private Integer routeRating;
+    private Float routeRating;
 
     private List<Long> dogIds;
     private List<WalkRequest.GpsPoint> gpsData;
 
     private WalkResponse(Long id, Float distanceKm, Integer durationSec, Integer calories,
-                         LocalDateTime startedAt, LocalDateTime endedAt, Integer routeRating, List<Long> dogIds,
+                         LocalDateTime startedAt, LocalDateTime endedAt, Float routeRating, List<Long> dogIds,
                          List<WalkRequest.GpsPoint> gpsData)
     {
         this.id = id;

@@ -38,7 +38,7 @@ public class Walk {
     @Column(nullable = false)
     private LocalDateTime endedAt;
 
-    private Integer routeRating;
+    private Float routeRating;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -48,7 +48,7 @@ public class Walk {
     private List<WalkDog> walkDogs;
 
     private Walk(Float distanceKm, Integer durationSec, Integer calories, String gpsData,
-                         LocalDateTime startedAt, LocalDateTime endedAt, Integer routeRating, User user)
+                         LocalDateTime startedAt, LocalDateTime endedAt, Float routeRating, User user)
     {
         this.distanceKm = distanceKm;
         this.durationSec = durationSec;
@@ -61,7 +61,7 @@ public class Walk {
     }
 
     public static Walk create(Float distanceKm, Integer durationSec, Integer calories, String gpsData,
-                       LocalDateTime startedAt, LocalDateTime endedAt, Integer routeRating, User user)
+                       LocalDateTime startedAt, LocalDateTime endedAt, Float routeRating, User user)
     {
         return new Walk(distanceKm, durationSec, calories, gpsData, startedAt, endedAt, routeRating, user);
     }

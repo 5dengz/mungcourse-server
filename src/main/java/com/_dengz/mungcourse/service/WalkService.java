@@ -2,22 +2,17 @@ package com._dengz.mungcourse.service;
 
 import com._dengz.mungcourse.dto.ai.LatAndLng;
 import com._dengz.mungcourse.dto.ai.WalkRecommendAiRequest;
+import com._dengz.mungcourse.dto.ai.WalkTrainModelAiRequest;
 import com._dengz.mungcourse.dto.walk.*;
 import com._dengz.mungcourse.entity.*;
 import com._dengz.mungcourse.exception.*;
 import com._dengz.mungcourse.properties.AiServerProperties;
-import com._dengz.mungcourse.repository.DogPlaceRepository;
-import com._dengz.mungcourse.repository.DogRepository;
-import com._dengz.mungcourse.repository.WalkDogRepository;
-import com._dengz.mungcourse.repository.WalkRepository;
+import com._dengz.mungcourse.repository.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,6 +39,7 @@ public class WalkService {
     private final DogService dogService;
     private final AiServerProperties aiServerProperties;
     private final DogPlaceRepository dogPlaceRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public WalkResponse saveWalk(WalkRequest walkRequest, User user) {
@@ -63,6 +59,7 @@ public class WalkService {
                 walkRequest.getCalories(), gpsJson, walkRequest.getStartedAt(), walkRequest.getEndedAt(), walkRequest.getRouteRating(), user);
 
         walkRepository.save(walk);
+        sendWalkToAiServer(walkRequest, user);
 
         // WalkDog 중간 엔티티 저장
         for (Dog dog : dogs) {
@@ -198,8 +195,6 @@ public class WalkService {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-
-
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.postForEntity(
                 aiServerProperties.getServer().getRequestUrl(),
@@ -220,6 +215,56 @@ public class WalkService {
         }
 
         return gpsDeserializate(unescapedJson); // 전체 JSON 응답 문자열
+    }
+
+    public void sendWalkToAiServer(WalkRequest walkRequest, User user) {
+        WalkTrainModelAiRequest walkTrainModelAiRequest =
+                WalkTrainModelAiRequest.create(walkRequest.getGpsData(), walkRequest.getRouteRating());
+
+        // JSON 문자열 생성 (내용은 JSON 포맷이지만 multipart의 텍스트 파트로 넣음)
+        String jsonString;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonString = objectMapper.writeValueAsString(walkTrainModelAiRequest);
+        } catch (JsonProcessingException e) {
+            throw new AiModelTrainRequestSerializationFailedExcepiton();
+        }
+
+        // pkl 바이너리 값을 pkl 파일로 변환 (이름은 model.pkl)
+        ByteArrayResource pklResource = new ByteArrayResource(user.getPklFile()) {
+            @Override
+            public String getFilename() {
+                return "model.pkl";
+            }
+        };
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("model_file", pklResource);
+        body.add("json_str", jsonString); // 그냥 문자열로 추가하면 OK
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        // 4. RestTemplate 객체 생성
+        RestTemplate restTemplate = new RestTemplate();
+
+        // 5. 응답을 byte[]로 받기
+        ResponseEntity<byte[]> response = restTemplate.exchange(
+                aiServerProperties.getServer().getRequestUrl(),
+                HttpMethod.POST,
+                requestEntity,
+                byte[].class
+        );
+
+        // 6. 응답 성공 시 사용자 PKL 업데이트
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            user.setPklFile(response.getBody());
+            userRepository.save(user);
+        } else {
+            throw new AiModelTrainFailedException();
+        }
     }
 
     public Walk findWalkAndCheckById(Long id, User user) {

@@ -43,7 +43,7 @@ public class AuthController {
     @PostMapping("/apple/login")
     @Operation(summary = "애플 OAuth 로그인 및 회원가입", description = "모바일에서 애플 소셜 로그인으로 회원가입 및 바로 로그인 합니다")
     public DataResponse<OAuth2Response> appleOAuthLoginOrRegister(@RequestBody IdentityTokenRequest identityTokenRequest) {
-        return DataResponse.ok(appleOAuth2Service.authenticate(identityTokenRequest.getIdentityToken()));
+        return DataResponse.ok(appleOAuth2Service.authenticate(identityTokenRequest.getIdentityToken(), identityTokenRequest.getNonce()));
     }
 
     @PostMapping("/refresh")
