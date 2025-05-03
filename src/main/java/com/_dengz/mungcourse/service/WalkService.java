@@ -59,7 +59,6 @@ public class WalkService {
                 walkRequest.getCalories(), gpsJson, walkRequest.getStartedAt(), walkRequest.getEndedAt(), walkRequest.getRouteRating(), user);
 
         walkRepository.save(walk);
-        sendWalkToAiServer(walkRequest, user);
 
         // WalkDog 중간 엔티티 저장
         for (Dog dog : dogs) {
@@ -176,6 +175,7 @@ public class WalkService {
             throw new AiRequestSerializationFailedException();
         }
 
+        System.out.println(jsonString);
 
         // pkl 바이너리 값을 pkl 파일로 변환 (이름은 model.pkl)
         ByteArrayResource pklResource = new ByteArrayResource(pklFile) {
@@ -184,6 +184,8 @@ public class WalkService {
                 return "model.pkl";
             }
         };
+
+        System.out.println(pklResource);
 
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -195,6 +197,8 @@ public class WalkService {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
+        System.out.println(requestEntity);
+
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.postForEntity(
                 aiServerProperties.getServer().getRequestUrl().getRecommend(),
@@ -203,6 +207,10 @@ public class WalkService {
         );
 
         String escapedMessage = response.getBody(); // 혹은 response.getMessage()
+
+        System.out.println(aiServerProperties.getServer().getRequestUrl().getRecommend());
+
+        System.out.println(escapedMessage);
 
 // Jackson 또는 String replace를 사용하여 이스케이프 제거
         ObjectMapper objectMapper = new ObjectMapper();
@@ -217,55 +225,6 @@ public class WalkService {
         return gpsDeserializate(unescapedJson); // 전체 JSON 응답 문자열
     }
 
-    public void sendWalkToAiServer(WalkRequest walkRequest, User user) {
-        WalkTrainModelAiRequest walkTrainModelAiRequest =
-                WalkTrainModelAiRequest.create(walkRequest.getGpsData(), walkRequest.getRouteRating());
-
-        // JSON 문자열 생성 (내용은 JSON 포맷이지만 multipart의 텍스트 파트로 넣음)
-        String jsonString;
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            jsonString = objectMapper.writeValueAsString(walkTrainModelAiRequest);
-        } catch (JsonProcessingException e) {
-            throw new AiModelTrainRequestSerializationFailedExcepiton();
-        }
-
-        // pkl 바이너리 값을 pkl 파일로 변환 (이름은 model.pkl)
-        ByteArrayResource pklResource = new ByteArrayResource(user.getPklFile()) {
-            @Override
-            public String getFilename() {
-                return "model.pkl";
-            }
-        };
-
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("model", pklResource);
-        body.add("json_str", jsonString); // 그냥 문자열로 추가하면 OK
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-        // 4. RestTemplate 객체 생성
-        RestTemplate restTemplate = new RestTemplate();
-
-        // 5. 응답을 byte[]로 받기
-        ResponseEntity<byte[]> response = restTemplate.exchange(
-                aiServerProperties.getServer().getRequestUrl().getTrain(),
-                HttpMethod.POST,
-                requestEntity,
-                byte[].class
-        );
-
-        // 6. 응답 성공 시 사용자 PKL 업데이트
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            user.setPklFile(response.getBody());
-            userRepository.save(user);
-        } else {
-            throw new AiModelTrainFailedException();
-        }
-    }
 
     public Walk findWalkAndCheckById(Long id, User user) {
         Walk walk = walkRepository.findById(id)
