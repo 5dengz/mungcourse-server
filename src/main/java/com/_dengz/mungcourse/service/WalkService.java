@@ -2,7 +2,6 @@ package com._dengz.mungcourse.service;
 
 import com._dengz.mungcourse.dto.ai.LatAndLng;
 import com._dengz.mungcourse.dto.ai.WalkRecommendAiRequest;
-import com._dengz.mungcourse.dto.ai.WalkTrainModelAiRequest;
 import com._dengz.mungcourse.dto.walk.*;
 import com._dengz.mungcourse.entity.*;
 import com._dengz.mungcourse.exception.*;
@@ -26,6 +25,7 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,7 +39,7 @@ public class WalkService {
     private final DogService dogService;
     private final AiServerProperties aiServerProperties;
     private final DogPlaceRepository dogPlaceRepository;
-    private final UserRepository userRepository;
+    private final SmokingZoneRepository smokingZoneRepository;
 
     @Transactional
     public WalkResponse saveWalk(WalkRequest walkRequest, User user) {
@@ -223,6 +223,26 @@ public class WalkService {
         }
 
         return gpsDeserializate(unescapedJson); // 전체 JSON 응답 문자열
+    }
+
+    public List<WalkSmokingZoneResponse> searchSmokingZones(Double currentLat, Double currentLng) {
+        double radiusMeters = 2000.0; // 현재 위치에서 5km를 기준으로 검색함
+
+        double latRange = radiusMeters / 111000.0; // 위도 1도 ≈ 111km = 111000m
+        double lngRange = radiusMeters / (111000.0 * Math.cos(Math.toRadians(currentLat)));
+
+        double minLat = currentLat - latRange;
+        double maxLat = currentLat + latRange;
+        double minLng = currentLng - lngRange;
+        double maxLng = currentLng + lngRange;
+
+        List<SmokingZone> smokingZones = smokingZoneRepository.findAllByLatBetweenAndLngBetween(minLat, maxLat, minLng, maxLng);
+
+        return smokingZones.stream()
+                .map(smokingZone -> {
+                    return WalkSmokingZoneResponse.create(smokingZone.getLat(), smokingZone.getLng());
+                })
+                .collect(Collectors.toList());
     }
 
 
