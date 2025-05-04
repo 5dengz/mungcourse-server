@@ -53,14 +53,19 @@ public class DogPlaceService {
 
         List<DogPlace> dogPlaces = dogPlaceRepository.findAllByLatBetweenAndLngBetween(minLat, maxLat, minLng, maxLng);
 
-        return dogPlaces.stream()// dogPlaces로부터 dogPlaceListResponse 만들어줌
-                .filter(place -> place.getName().equals(name))
+        return dogPlaces.stream()
+                .filter(place -> {
+                    String placeName = place.getName();
+                    return placeName != null &&
+                            name != null &&
+                            placeName.toLowerCase().contains(name.trim().toLowerCase());
+                })
                 .map(dogplace -> {
-                    double distance = haversine(currentLat, currentLng, dogplace.getLat(), dogplace.getLng()); // 거리 계산 메서드
+                    double distance = haversine(currentLat, currentLng, dogplace.getLat(), dogplace.getLng());
                     return DogPlaceListResponse.create(dogplace, distance);
                 })
-                .filter(response -> response.getDistance() <= radiusMeters) // 2000m 이하만 한번 더 정렬
-                .sorted(Comparator.comparingDouble(DogPlaceListResponse::getDistance)) // 가까운 순서로 정렬
+                .filter(response -> response.getDistance() <= radiusMeters)
+                .sorted(Comparator.comparingDouble(DogPlaceListResponse::getDistance))
                 .collect(Collectors.toList());
     }
 
