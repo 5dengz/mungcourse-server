@@ -6,7 +6,6 @@ import com._dengz.mungcourse.dto.auth.AccessTokenAndRefreshTokenResponse;
 import com._dengz.mungcourse.exception.*;
 import com._dengz.mungcourse.jwt.TokenProvider;
 import com._dengz.mungcourse.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

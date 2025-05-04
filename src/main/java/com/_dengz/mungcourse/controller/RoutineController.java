@@ -2,7 +2,6 @@ package com._dengz.mungcourse.controller;
 
 import com._dengz.mungcourse.dto.common.BaseResponse;
 import com._dengz.mungcourse.dto.common.DataResponse;
-import com._dengz.mungcourse.dto.dogPlace.DogPlaceListResponse;
 import com._dengz.mungcourse.dto.routine.*;
 import com._dengz.mungcourse.jwt.UserPrincipal;
 import com._dengz.mungcourse.service.RoutineService;
