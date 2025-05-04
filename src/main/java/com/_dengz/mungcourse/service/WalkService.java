@@ -26,6 +26,7 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -67,6 +68,7 @@ public class WalkService {
         return WalkResponse.create(walk, dogs, walkRequest.getGpsData());
     }
 
+
     @Transactional(readOnly = true)
     public List<WalkDateResponse> findWalksByYearAndMonth(String yearAndMonth, User user) {
         YearMonth ym = YearMonth.parse(yearAndMonth);
@@ -82,6 +84,22 @@ public class WalkService {
         return walks.stream()
                 .map(WalkDateResponse::create)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public WalkResponse findWalkRecent(User user) {
+        return walkRepository.findTopByUserOrderByStartedAtDesc(user)
+                .map(walk -> {
+                    List<Dog> dogs = walkDogRepository.findAllByWalk(walk)
+                            .stream()
+                            .map(WalkDog::getDog)
+                            .toList();
+
+                    List<WalkRequest.GpsPoint> gpsPoints = gpsDeserializate(walk);
+
+                    return WalkResponse.create(walk, dogs, gpsPoints);
+                })
+                .orElse(null);
     }
 
     @Transactional(readOnly = true)

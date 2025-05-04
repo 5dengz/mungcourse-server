@@ -26,7 +26,7 @@ public class AiModelTrainScheduler {
         List<User> users = userRepository.findAll();
 
         for (User user : users) {
-            List<Walk> walks = walkRepository.findByUserId(user.getId());
+            List<Walk> walks = walkRepository.findByUser(user);
 
             if (walks.isEmpty() || user.getPklFile() == null) {
                 continue; // 데이터 없으면 skip

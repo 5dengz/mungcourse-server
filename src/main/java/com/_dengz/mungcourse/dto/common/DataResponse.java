@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
 @Getter
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataResponse<T> extends BaseResponse {
     private final T data;
 

@@ -36,6 +36,12 @@ public class WalkController {
         return DataResponse.ok(walkService.findWalksByYearAndMonth(yearAndMonth, principal.getUser()));
     }
 
+    @GetMapping("/recent")
+    @Operation(summary = "제일 최근 산책 기록 조회", description = "제일 최근의 산책 기록을 조회합니다.")
+    public DataResponse<WalkResponse> getWalksRecent(@AuthenticationPrincipal  UserPrincipal principal) {
+        return DataResponse.ok(walkService.findWalkRecent(principal.getUser()));
+    }
+
     @GetMapping("")
     @Operation(summary = "특정 날짜의 산책 기록 조회", description = "YYYY-MM-DD 형식의 date 파라미터로 해당 날짜의 산책 기록을 조회합니다.")
     public DataResponse<List<WalkResponse>> getWalksByDate(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,

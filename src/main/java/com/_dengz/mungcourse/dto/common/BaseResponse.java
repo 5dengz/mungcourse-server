@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatusCode;
 import java.time.LocalDateTime;
 
 @Getter
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BaseResponse {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Schema(example = "2024-01-00 13:00:00", type = "string")
