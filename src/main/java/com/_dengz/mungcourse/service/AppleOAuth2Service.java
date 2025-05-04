@@ -227,9 +227,7 @@ public class AppleOAuth2Service {
         existingUser.setProvider(userInfo.getProvider());  // 인증 제공자 업데이트
 
         // 3. 변경된 사용자 정보 저장 (변경 사항이 있을 때만)
-        if (!existingUser.getEmail().equals(userInfo.getEmail()) ||
-                !existingUser.getName().equals(userInfo.getName()) ||
-                !existingUser.getUserImgUrl().equals(userInfo.getUserImgUrl())) {
+        if (!existingUser.getEmail().equals(userInfo.getEmail())) {
             return userRepository.save(existingUser);
         }
         else
