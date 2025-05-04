@@ -3,8 +3,6 @@ package com._dengz.mungcourse.controller;
 import com._dengz.mungcourse.dto.common.BaseResponse;
 import com._dengz.mungcourse.dto.common.DataResponse;
 import com._dengz.mungcourse.dto.walk.*;
-import com._dengz.mungcourse.entity.User;
-import com._dengz.mungcourse.exception.UserNotFoundException;
 import com._dengz.mungcourse.jwt.UserPrincipal;
 import com._dengz.mungcourse.service.WalkService;
 import io.swagger.v3.oas.annotations.Operation;

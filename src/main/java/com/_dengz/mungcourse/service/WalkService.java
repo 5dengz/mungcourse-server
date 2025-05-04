@@ -25,7 +25,6 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -175,8 +174,6 @@ public class WalkService {
             throw new AiRequestSerializationFailedException();
         }
 
-        System.out.println(jsonString);
-
         // pkl 바이너리 값을 pkl 파일로 변환 (이름은 model.pkl)
         ByteArrayResource pklResource = new ByteArrayResource(pklFile) {
             @Override
@@ -184,8 +181,6 @@ public class WalkService {
                 return "model.pkl";
             }
         };
-
-        System.out.println(pklResource);
 
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -197,8 +192,6 @@ public class WalkService {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        System.out.println(requestEntity);
-
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.postForEntity(
                 aiServerProperties.getServer().getRequestUrl().getRecommend(),
@@ -207,10 +200,6 @@ public class WalkService {
         );
 
         String escapedMessage = response.getBody(); // 혹은 response.getMessage()
-
-        System.out.println(aiServerProperties.getServer().getRequestUrl().getRecommend());
-
-        System.out.println(escapedMessage);
 
 // Jackson 또는 String replace를 사용하여 이스케이프 제거
         ObjectMapper objectMapper = new ObjectMapper();
