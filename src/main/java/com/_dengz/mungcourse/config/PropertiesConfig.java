@@ -12,7 +12,8 @@ import org.springframework.context.annotation.Configuration;
         GoogleOAuth2Properties.class,
         AppleOAuth2Properties.class,
         SecurityProperties.class,
-        AiServerProperties.class
+        AiServerProperties.class,
+        GooglePlaceApiProperties.class
 })
 public class PropertiesConfig {
 }
