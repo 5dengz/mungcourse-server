@@ -19,4 +19,7 @@ public class RoutineRequest {
 
     @NotEmpty(message = "반복 요일은 최소 한 개 이상 선택해야 합니다.")
     private List<RepeatDay> repeatDays;
+
+    @NotEmpty
+    private Boolean isAlarmActive;
 }
