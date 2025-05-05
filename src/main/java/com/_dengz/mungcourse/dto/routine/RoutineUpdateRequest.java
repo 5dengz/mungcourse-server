@@ -23,6 +23,9 @@ public class RoutineUpdateRequest {
     @NotEmpty(message = "반복 요일은 최소 한 개 이상 선택해야 합니다.")
     private List<RepeatDay> repeatDays;
 
+    @NotEmpty
+    private Boolean isAlarmActive;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Schema(example = "2024-01-01", type = "string")
     private LocalDate applyFromDate;

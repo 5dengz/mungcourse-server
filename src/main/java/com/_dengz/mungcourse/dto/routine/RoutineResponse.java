@@ -25,14 +25,17 @@ public class RoutineResponse {
 
     private final Boolean isCompleted;
 
+    private final Boolean isAlarmActive;
+
     private final LocalDate date;
 
-    private RoutineResponse(Long id, Long routineId, String name, String alarmTime, Boolean isCompleted, LocalDate date) {
+    private RoutineResponse(Long id, Long routineId, String name, String alarmTime, Boolean isCompleted, Boolean isAlarmActive, LocalDate date) {
         this.id = id;
         this.routineId = routineId;
         this.name = name;
         this.alarmTime = alarmTime;
         this.isCompleted = isCompleted;
+        this.isAlarmActive = isAlarmActive;
         this.date = date;
     }
 
@@ -42,6 +45,7 @@ public class RoutineResponse {
                 routine.getId(),
                 routine.getName(),
                 routine.getAlarmTime(),
+                routine.getIsAlarmActive(),
                 routineCheck.getIsCompleted(),
                 routineCheck.getDate()
         );

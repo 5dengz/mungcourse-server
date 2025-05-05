@@ -26,6 +26,8 @@ public class Routine {
     @Column(nullable = true)
     private String alarmTime; // time 자료형은 보통 String 또는 LocalTime 사용
 
+    private Boolean isAlarmActive = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -33,18 +35,20 @@ public class Routine {
     @OneToMany(mappedBy = "routine", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<RoutineSchedule> schedules;
 
-    private Routine(String name, String alarmTime, User user) {
+    private Routine(String name, String alarmTime, Boolean isAlarmActive, User user) {
         this.name = name;
         this.alarmTime = alarmTime;
+        this.isAlarmActive = isAlarmActive;
         this.user = user;
     }
 
-    public static Routine create(String name, String alarmTime, User user) {
-        return new Routine(name, alarmTime, user);
+    public static Routine create(String name, String alarmTime, Boolean isAlarmActive, User user) {
+        return new Routine(name, alarmTime, isAlarmActive, user);
     }
 
     public void updateRoutineInfo(RoutineUpdateRequest routineUpdateRequest) {
         if (routineUpdateRequest.getName() != null) this.name = routineUpdateRequest.getName();
         if (routineUpdateRequest.getAlarmTime() != null) this.alarmTime = routineUpdateRequest.getAlarmTime();
+        if (routineUpdateRequest.getIsAlarmActive() != null) this.isAlarmActive = routineUpdateRequest.getIsAlarmActive();
     }
 }

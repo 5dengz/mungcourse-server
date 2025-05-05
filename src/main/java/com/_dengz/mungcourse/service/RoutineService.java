@@ -38,7 +38,7 @@ public class RoutineService {
     @Transactional
     public RoutinePostResponse makeRoutine(RoutineRequest routineRequest, User user) {
 
-        Routine routine = Routine.create(routineRequest.getName(), routineRequest.getAlarmTime(), user);
+        Routine routine = Routine.create(routineRequest.getName(), routineRequest.getAlarmTime(), routineRequest.getIsAlarmActive(), user);
 
         routineRepository.save(routine); // 루틴 정보부터 저장
 
