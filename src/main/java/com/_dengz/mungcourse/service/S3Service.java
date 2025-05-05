@@ -107,9 +107,6 @@ public class S3Service {
 
         String fullUrl = expectedUrlPrefix + key;
 
-        System.out.println(key);
-        System.out.println(fullUrl);
-
         Dog dog = dogRepository.findByDogImgUrl(fullUrl)
                 .orElseThrow(DogImageNotFoundException::new);
 
