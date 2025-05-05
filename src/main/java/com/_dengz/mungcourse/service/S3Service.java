@@ -17,6 +17,7 @@ import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URL;
 import java.util.Date;
@@ -89,6 +90,7 @@ public class S3Service {
         return expiration;
     }
 
+
     public void deleteImage(ImageDeleteRequest imageDeleteRequest, User user) {
         String key = imageDeleteRequest.getKey();
         validateOwnershipOrThrow(key, user);
@@ -99,15 +101,19 @@ public class S3Service {
         return amazonS3.getUrl(bucket, key).toString();
     }
 
+
     public void validateOwnershipOrThrow(String key, User user) {
         String expectedUrlPrefix = "https://mungcourse-s3.s3.ap-northeast-2.amazonaws.com/";
 
         String fullUrl = expectedUrlPrefix + key;
 
+        System.out.println(key);
+        System.out.println(fullUrl);
+
         Dog dog = dogRepository.findByDogImgUrl(fullUrl)
                 .orElseThrow(DogImageNotFoundException::new);
 
-        if (!dog.getUser().equals(user)) {
+        if (!dog.getUser().getId().equals(user.getId())) {
             throw new DogImageAccessForbiddenException();
         }
     }
