@@ -52,12 +52,7 @@ public class AuthService {
 
     @Transactional
     public void deleteUser(String sub, String refreshToken) {
-        System.out.println(">>> 삭제할 사용자 sub: " + sub);
-        System.out.println(">>> 삭제 전 존재 확인: " + userRepository.existsBySub(sub));
-
         userRepository.deleteBySub(sub);
-
-        System.out.println(">>> 삭제 후 존재 확인: " + userRepository.existsBySub(sub));
-
+        logoutUser(refreshToken);
     }
 }
