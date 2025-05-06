@@ -28,7 +28,7 @@ public class RoutineSchedule {
     @JoinColumn(name = "routine_id", nullable = false)
     private Routine routine;
 
-    @OneToMany(mappedBy = "routineSchedule")
+    @OneToMany(mappedBy = "routineSchedule", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<RoutineCheck> checks;
 
     private RoutineSchedule(RepeatDay dayOfWeek, Routine routine) {
