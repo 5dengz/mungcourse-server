@@ -21,7 +21,7 @@ public class AiModelTrainScheduler {
     private final AiClient aiClient;
 
     // 72시간마다 실행 (3일마다 새벽 3시)
-    @Scheduled(cron = "0 0 3 */3 * *")
+    @Scheduled(cron = "0 0 3 */3 * *", zone = "Asia/Seoul")
     public void scheduleTrainingPerUser() {
         List<User> users = userRepository.findAll();
 
