@@ -25,11 +25,11 @@ public class DogPlaceDevService {
 
     @Transactional
     public void saveDogImageUrl() {
-        Long id = 550L;
+        Long id = 4100L;
 
         String apiKey = googlePlaceApiProperties.getPlaceApiKey();
 
-        while (id < 1400) {
+        while (id < 5000) {
 
             DogPlace dogPlace = dogPlaceRepository.findById(id)
                     .orElseThrow(DogPlaceNotFoundException::new);
