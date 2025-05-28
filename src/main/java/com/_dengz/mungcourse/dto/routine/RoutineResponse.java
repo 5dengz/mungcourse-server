@@ -45,8 +45,8 @@ public class RoutineResponse {
                 routine.getId(),
                 routine.getName(),
                 routine.getAlarmTime(),
-                routine.getIsAlarmActive(),
                 routineCheck.getIsCompleted(),
+                routine.getIsAlarmActive(),
                 routineCheck.getDate()
         );
     }

@@ -34,7 +34,7 @@ public class AiClient {
         } catch (JsonProcessingException e) {
             throw new AiModelTrainRequestSerializationFailedExcepiton();
         }
-        
+
 
         // 2. PKL 바이너리 → 파일 형태
         ByteArrayResource pklResource = new ByteArrayResource(user.getPklFile()) {
