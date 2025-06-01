@@ -39,7 +39,7 @@ public class WalkService {
     private final DogService dogService;
     private final AiServerProperties aiServerProperties;
     private final DogPlaceRepository dogPlaceRepository;
-    private final SmokingZoneRepository smokingZoneRepository;
+    private final WarningZoneRepository warningZoneRepository;
 
     @Transactional
     public WalkResponse saveWalk(WalkRequest walkRequest, User user) {
@@ -232,7 +232,7 @@ public class WalkService {
         return gpsDeserializate(unescapedJson); // 전체 JSON 응답 문자열
     }
 
-    public List<WalkSmokingZoneResponse> searchSmokingZones(Double currentLat, Double currentLng) {
+    public List<WalkWarningZoneResponse> searchWarningZones(Double currentLat, Double currentLng) {
         double radiusMeters = 2000.0; // 현재 위치에서 5km를 기준으로 검색함
 
         double latRange = radiusMeters / 111000.0; // 위도 1도 ≈ 111km = 111000m
@@ -243,11 +243,11 @@ public class WalkService {
         double minLng = currentLng - lngRange;
         double maxLng = currentLng + lngRange;
 
-        List<SmokingZone> smokingZones = smokingZoneRepository.findAllByLatBetweenAndLngBetween(minLat, maxLat, minLng, maxLng);
+        List<WarningZone> warningZones = warningZoneRepository.findAllByLatBetweenAndLngBetween(minLat, maxLat, minLng, maxLng);
 
-        return smokingZones.stream()
-                .map(smokingZone -> {
-                    return WalkSmokingZoneResponse.create(smokingZone.getLat(), smokingZone.getLng());
+        return warningZones.stream()
+                .map(warningZone -> {
+                    return WalkWarningZoneResponse.create(warningZone.getLat(), warningZone.getLng(), warningZone.getCategory());
                 })
                 .collect(Collectors.toList());
     }
