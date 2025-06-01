@@ -13,7 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SmokingZone {
+public class WarningZone {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,4 +21,6 @@ public class SmokingZone {
     private Double lat;
 
     private Double lng;
+
+    private String category;
 }

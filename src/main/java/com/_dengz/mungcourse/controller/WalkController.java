@@ -71,8 +71,8 @@ public class WalkController {
 
     @GetMapping("/smokingzone")
     @Operation(summary = "산책 시작 위치 기준 2km 반경 흡연 구역 위치 전송", description = "클라이언트의 산책 시작 위치에서 근처 흡연 구역의 위치를 전달합니다.")
-    public DataResponse<List<WalkSmokingZoneResponse>> findSmokingZones(@RequestParam("currentLat") Double currentLat,
+    public DataResponse<List<WalkWarningZoneResponse>> findSmokingZones(@RequestParam("currentLat") Double currentLat,
                                                                       @RequestParam("currentLng") Double currentLng) {
-        return DataResponse.ok(walkService.searchSmokingZones(currentLat, currentLng));
+        return DataResponse.ok(walkService.searchWarningZones(currentLat, currentLng));
     }
 }
